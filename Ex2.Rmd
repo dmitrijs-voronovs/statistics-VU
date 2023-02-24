@@ -96,6 +96,22 @@ $X_1,\ldots,X_{18}\sim \text{Unif}[3,\theta]$, then use the central
 limit theorem to find an estimate $\hat{\theta}$ *for* $\theta$ *and
 construct a 95%-CI for* $\theta$*. Can you improve this CI?*
 
+```{r}
+x_bar <- mean(After8weeks)
+s <- sd(After8weeks)
+
+# calculate estimate of theta and 95% CI
+theta_hat <- x_bar + qnorm(0.975) * s / sqrt(length(After8weeks))
+ci <- c(x_bar - qnorm(0.975) * s / sqrt(length(After8weeks)), theta_hat)
+
+# print results
+cat("Estimate of theta:", theta_hat, "\n")
+cat("95% CI for theta:", ci, "\n")
+```
+
+To improve the CI, we could try using a bootstrap approach to estimate
+the distribution of $\hat{\theta}$ and calculate a percentile CI.
+
 *d)  By using a bootstrap test with test statistic*
 $T=\max(X_1,\ldots,X_{18})$*, determine those* $\theta\in[3,12]$*, for
 which the hypothesis* $X_1,\ldots,X_{18}\sim \text{Unif}[3,\theta]$ *is
