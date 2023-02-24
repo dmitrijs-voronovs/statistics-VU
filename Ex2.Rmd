@@ -30,36 +30,125 @@ columns Before and After8weeks are correlated.*
 
 ```{r}
 data = read.table("cholesterol.txt")
+attach(data)
 head(data)
 ```
 
 ```{r}
-cor(data$Before, data$After8weeks)
+par(mfrow=c(1,2))
+qqnorm(Before, main="Before")
+qqnorm(After8weeks, main="After")
+par(mfrow=c(1,1))
+```
+
+Both before and after follow the normal distribution.
+
+```{r}
+par(mfrow=c(1,2))
+hist(Before, main="Before")
+hist(After8weeks, main="After")
+par(mfrow=c(1,1))
+```
+
+According to the histograms and boxplots, we can see that both Before
+and After columns are approximately normal. There are no major
+inconsistencies in the data.
+
+```{r}
+boxplot(Before, After8weeks, names = c("Before", "After"))
 ```
 
 ```{r}
-plot(data$Before, data$After8weeks)
+cor(Before, After8weeks)
+```
+
+And have a high correlation
+
+```{r}
+plot(Before, After8weeks)
 ```
 
 *b)  Apply two relevant tests (cf. Lectures 2, 3) to verify whether the
 diet with low fat margarine has an effect (argue whether the data are
 paired or not). Is a permutation test applicable?*
 
-*c)  Let* $X_1,\ldots,X_{18}$ *be the column After8weeks. Assume*
-$X_1,\ldots,X_{18}\sim \text{Unif}[3,\theta]$, then use the central limit theorem to find an estimate $\hat{\theta}$
-*for* $\theta$ *and construct a 95%-CI for* $\theta$*. Can you improve
-this CI?*
+As each row represents the cholesterol level (mmol/L) respectively
+before the diet and after 8 weeks on the diet for every person, paired
+tests can be conducted.
 
-*d)  By using a bootstrap test with test statistic
-\$T=\\max(X_1,\\ldots,X\_{18})\$, determine those \$\\theta\\in[3,12]\$,
-for which the hypothesis* $X_1,\ldots,X_{18}\sim \text{Unif}[3,\theta]$
-*is not rejected. Can the Kolmogorov-Smirnov test be also applied for
-this situation?*
+```{r}
+t.test(Before, After8weeks, paired=T)
+wilcox.test(Before, After8weeks, paired=T)
+```
+
+Both tests showed p values \< .05 which indicates that the we reject
+$H_0$ and accept $H_a$ , so **the low fat margarine diet has an effect
+on reduing cholesterol levels**.
+
+Additionally, permutation test can be conducted, however due to the
+small sample size of 18 entries, test may not be reliable and paired
+t-test and Wilcoxon signed-rank test may be more appropriate.
+
+<!--# Should we make a permutation test? -->
+
+*c)  Let* $X_1,\ldots,X_{18}$ *be the column After8weeks. Assume*
+$X_1,\ldots,X_{18}\sim \text{Unif}[3,\theta]$, then use the central
+limit theorem to find an estimate $\hat{\theta}$ *for* $\theta$ *and
+construct a 95%-CI for* $\theta$*. Can you improve this CI?*
+
+*d)  By using a bootstrap test with test statistic*
+$T=\max(X_1,\ldots,X_{18})$*, determine those* $\theta\in[3,12]$*, for
+which the hypothesis* $X_1,\ldots,X_{18}\sim \text{Unif}[3,\theta]$ *is
+not rejected. Can the Kolmogorov-Smirnov test be also applied for this
+situation?*
 
 *e)  Using an appropriate test, verify whether the median cholesterol
 level after 8 weeks of low fat diet is less than 6. Next, design and
 perform a test to check whether the fraction of the cholesterol levels
 after 8 weeks of low fat diet less than 4.5 is at most 25%.*
+
+```{r}
+wilcox.test(Before, After8weeks, paired=T, alternative = "less", conf.int=T)
+```
+
+A p-value of 1 indicates that the observed data is very likely under the
+null hypothesis, meaning that there is no significant difference between
+the median cholesterol levels before and after the low-fat diet.
+
+<!--# there is no significat evidence to reject the null hypothesis, which is that cholesterol level after 8 weeks of low fat diet is less than 6. -->
+
+The confidence interval (-Inf, 0.705) suggests that the true difference
+in median cholesterol levels between before and after the diet could be
+as low as negative infinity (which is not possible) and as high as
+0.705. However, since the p-value is not significant, this confidence
+interval should be interpreted with caution.
+
+The sample estimate of the (pseudo)median is 0.635, which suggests that
+the median cholesterol level after the low-fat diet is slightly lower
+than before, but as the p-value is not significant, we cannot conclude
+that this difference is statistically significant.
+
+```{r}
+less_than_4.5 <- sum(After8weeks < 4.5)
+binom.test(less_than_4.5, length(After8weeks), p = 0.25, alternative = "less")
+```
+
+The p-value of 0.3057 suggests that there is no significant evidence to
+reject the null hypothesis, which in this case is that the fraction of
+cholesterol levels after the low-fat diet is less than 4.5 is at most
+25%.
+
+The confidence interval of (0.0000000, 0.3766792) suggests that the true
+fraction of cholesterol levels after the low-fat diet less than 4.5
+could range from 0 (which is not possible) to 0.3766792. Since the
+p-value is not significant, this confidence interval should be
+interpreted with caution.
+
+The probability of success of 0.1666667 indicates that only 1 out of the
+6 participants had a cholesterol level after the low-fat diet less than
+4.5, which is a low probability of success. However, as the p-value is
+not significant, we cannot conclude that this difference is
+statistically significant.
 
 ## Exercise 3
 
