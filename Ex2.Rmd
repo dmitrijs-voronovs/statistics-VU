@@ -59,7 +59,7 @@ boxplot(Before, After8weeks, names = c("Before", "After"))
 ```
 
 ```{r}
-cor(Before, After8weeks)
+cor.test(Before, After8weeks)
 ```
 
 And have a high correlation
@@ -78,6 +78,7 @@ tests can be conducted.
 
 ```{r}
 t.test(Before, After8weeks, paired=T)
+# symmetric data is required
 wilcox.test(Before, After8weeks, paired=T)
 ```
 
@@ -89,7 +90,7 @@ Additionally, permutation test can be conducted, however due to the
 small sample size of 18 entries, test may not be reliable and paired
 t-test and Wilcoxon signed-rank test may be more appropriate.
 
-<!--# Should we make a permutation test? -->
+<!--# Should we make a permutation test? It's enough-->
 
 *c)  Let* $X_1,\ldots,X_{18}$ *be the column After8weeks. Assume*
 $X_1,\ldots,X_{18}\sim \text{Unif}[3,\theta]$, then use the central
@@ -112,11 +113,53 @@ cat("95% CI for theta:", ci, "\n")
 To improve the CI, we could try using a bootstrap approach to estimate
 the distribution of $\hat{\theta}$ and calculate a percentile CI.
 
+<!--# bootstrap here?? -->
+
+```{r}
+# calculate the sample mean and standard deviation
+x_bar <- mean(After8weeks)
+
+# calculate the standard error of the mean
+se <- sd(After8weeks) / sqrt(length(After8weeks))
+
+# calculate the confidence interval using the t-distribution
+t_val <- qt(0.025, df = length(After8weeks) - 1, lower.tail = F)
+ci <- x_bar + t_val * se * c(-1, 1)
+cat("95% confidence interval using t-distribution:", ci, "\n")
+
+# calculate the confidence interval using the normal distribution
+z_val <- qnorm(0.025, lower.tail = F)
+ci2 <- x_bar + z_val * se * c(-1, 1)
+cat("95% confidence interval using normal distribution:", ci2, "\n")
+```
+
 *d)  By using a bootstrap test with test statistic*
 $T=\max(X_1,\ldots,X_{18})$*, determine those* $\theta\in[3,12]$*, for
 which the hypothesis* $X_1,\ldots,X_{18}\sim \text{Unif}[3,\theta]$ *is
 not rejected. Can the Kolmogorov-Smirnov test be also applied for this
 situation?*
+
+```{r}
+#3.2
+```
+
+```{r}
+# calculate the sample mean and standard deviation
+x_bar <- mean(After8weeks)
+
+# calculate the standard error of the mean
+se <- sd(After8weeks) / sqrt(length(After8weeks))
+
+# calculate the confidence interval using the t-distribution
+t_val <- qt(0.025, df = length(After8weeks) - 1, lower.tail = F)
+ci <- x_bar + t_val * se * c(-1, 1)
+cat("95% confidence interval using t-distribution:", ci, "\n")
+
+# calculate the confidence interval using the normal distribution
+z_val <- qnorm(0.025, lower.tail = F)
+ci2 <- x_bar + z_val * se * c(-1, 1)
+cat("95% confidence interval using normal distribution:", ci2, "\n")
+```
 
 *e)  Using an appropriate test, verify whether the median cholesterol
 level after 8 weeks of low fat diet is less than 6. Next, design and
@@ -124,25 +167,49 @@ perform a test to check whether the fraction of the cholesterol levels
 after 8 weeks of low fat diet less than 4.5 is at most 25%.*
 
 ```{r}
-wilcox.test(Before, After8weeks, paired=T, alternative = "less", conf.int=T)
+#median shift
+# wilcox.test(Before, After8weeks, paired=T, alternative = "greater", conf.int=T)
+# reject, so greater
+# median(After8weeks) < 6
+wilcox.test(After8weeks, mu=6, alternative="less")
+wilcox.test(After8weeks, mu = 6, alternative = "greater", exact = FALSE)
 ```
 
-A p-value of 1 indicates that the observed data is very likely under the
-null hypothesis, meaning that there is no significant difference between
-the median cholesterol levels before and after the low-fat diet.
+Based on the output, we can see that the p-value is 0.223, which is
+greater than 0.05. Therefore, we fail to reject the null hypothesis and
+conclude that there is not enough evidence to suggest that the median
+cholesterol level after 8 weeks of low fat diet is less than 6.
 
-<!--# there is no significat evidence to reject the null hypothesis, which is that cholesterol level after 8 weeks of low fat diet is less than 6. -->
+```{r}
+# Store the Before and After8weeks data
+Before <- c(6.42, 6.76, 6.56, 4.8, 8.43, 7.49, 8.05, 5.05, 5.77, 3.91, 6.77, 6.44, 6.17, 7.67, 7.34, 6.85, 5.13, 5.73)
+After8weeks <- c(5.75, 6.13, 5.71, 4.15, 7.67, 7.05, 7.1, 4.67, 5.33, 3.66, 5.96, 5.64, 5.51, 6.96, 6.82, 6.29, 4.45, 5.17)
 
-The confidence interval (-Inf, 0.705) suggests that the true difference
-in median cholesterol levels between before and after the diet could be
-as low as negative infinity (which is not possible) and as high as
-0.705. However, since the p-value is not significant, this confidence
-interval should be interpreted with caution.
+# Calculate the observed test statistic
+obs_stat <- median(Before - After8weeks)
 
-The sample estimate of the (pseudo)median is 0.635, which suggests that
-the median cholesterol level after the low-fat diet is slightly lower
-than before, but as the p-value is not significant, we cannot conclude
-that this difference is statistically significant.
+# Set the number of permutations
+n_perm <- 10000
+
+# Initialize an empty vector to store the permuted test statistics
+perm_stats <- numeric(n_perm)
+
+# Permute the data and calculate the test statistic for each permutation
+for (i in 1:n_perm) {
+  perm_data <- sample(c(Before, After8weeks), size = length(Before), replace = FALSE)
+  perm_stat <- median(perm_data[1:length(Before)] - perm_data[(length(Before)+1):(2*length(Before))])
+  perm_stats[i] <- perm_stat
+}
+
+# Calculate the p-value
+p_val <- mean(perm_stats <= obs_stat)
+
+# Print the results
+cat("Observed test statistic:", obs_stat, "\n")
+cat("Permutation p-value:", p_val, "\n")
+```
+
+another alg
 
 ```{r}
 less_than_4.5 <- sum(After8weeks < 4.5)

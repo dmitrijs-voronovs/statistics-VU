@@ -1,18 +1,42 @@
 ---
-title: "Task 3"
-output: html_notebook
+title: "Assignment 1"
+author: "Group 69"
+date: "24.02.2023"
+output: pdf_document
+fontsize: 11pt
+highlight: tango
+editor_options: 
+  markdown: 
+    wrap: 72
 ---
 
-To investigate the effect of 3 types of diet, 78 persons were divided randomly in 3 groups, the first group following diet 1, second group diet 2 and the third group diet 3. Next to some other characteristics, the weight was measured before diet and after 6 weeks of diet for each person in the study. The collected data is summarized in the data frame diet.txt in the following columns: person -- participant number, gender -- gender (1 = male, 0 = female), age -- age (years), height -- height (cm), preweight -- weight before the diet (kg), diet -- the type of diet followed, weight6weeks -- weight after 6 weeks of diet (kg). Compute and add to the data frame the variable weight.lost expressing the lost weight, to be used as response variable.
+To investigate the effect of 3 types of diet, 78 persons were divided
+randomly in 3 groups, the first group following diet 1, second group
+diet 2 and the third group diet 3. Next to some other characteristics,
+the weight was measured before diet and after 6 weeks of diet for each
+person in the study. The collected data is summarized in the data frame
+diet.txt in the following columns: person -- participant number, gender
+-- gender (1 = male, 0 = female), age -- age (years), height -- height
+(cm), preweight -- weight before the diet (kg), diet -- the type of diet
+followed, weight6weeks -- weight after 6 weeks of diet (kg). Compute and
+add to the data frame the variable weight.lost expressing the lost
+weight, to be used as response variable.
 
 ```{r}
 diet = read.table("diet.txt", header = T)
 diet$weight.lost <- diet$preweight - diet$weight6weeks
 ```
 
-a)  Make an informative graphical summary of the data relevant for study of the effect of diet on the wight loss. By using only the columns preweight and weight6weeks, test the claim that the diet affects the weight loss. Check the assumptions of the test applied.
+a)  Make an informative graphical summary of the data relevant for study
+    of the effect of diet on the wight loss. By using only the columns
+    preweight and weight6weeks, test the claim that the diet affects the
+    weight loss. Check the assumptions of the test applied.
 
-To create a graphical summary, we can use a scatter plot of preweight vs weight6weeks, with the points colored by diet group. To test whether the diet affects weight loss, we can use a paired t-test on the difference between preweight and weight6weeks for each participant, with diet group as a grouping variable.
+To create a graphical summary, we can use a scatter plot of preweight vs
+weight6weeks, with the points colored by diet group. To test whether the
+diet affects weight loss, we can use a paired t-test on the difference
+between preweight and weight6weeks for each participant, with diet group
+as a grouping variable.
 
 ```{r}
 library(ggplot2)
@@ -29,7 +53,9 @@ ggplot(diet, aes(x = preweight, y = weight6weeks, color = factor(diet))) +
 
 ```
 
-To check the assumptions of the paired t-test, we can inspect the normality of the differences using a histogram and a normal probability plot:
+To check the assumptions of the paired t-test, we can inspect the
+normality of the differences using a histogram and a normal probability
+plot:
 
 ```{r}
 # Histogram of the differences
@@ -40,9 +66,16 @@ qqnorm(diet$preweight - diet$weight6weeks, main="Normal Probability Plot of Weig
 qqline(diet$preweight - diet$weight6weeks)
 ```
 
-The histogram and normal probability plot of the differences show a roughly symmetric distribution, so the assumption of normality is met. The variances of the differences are roughly equal across diet groups, so the assumption of homogeneity of variances is met. If both assumptions are met, then the paired t-test can be used to test for significant differences in weight loss between diet groups.
+The histogram and normal probability plot of the differences show a
+roughly symmetric distribution, so the assumption of normality is met.
+The variances of the differences are roughly equal across diet groups,
+so the assumption of homogeneity of variances is met. If both
+assumptions are met, then the paired t-test can be used to test for
+significant differences in weight loss between diet groups.
 
-H_0: There is no significant difference in weight loss between the three types of diets. H_1: There is a significant difference in weight loss between three types of diets.
+H_0: There is no significant difference in weight loss between the three
+types of diets. H_1: There is a significant difference in weight loss
+between three types of diets.
 
 ```{r}
 # Paired t-test
@@ -51,9 +84,15 @@ t.test(diet$preweight, diet$weight6weeks, paired=TRUE, alternative="two.sided", 
 
 With p-value being smaller than 0.05 we can reject null hypothesis.
 
-b)  Apply one-way ANOVA to test whether type of diet has an effect on the lost weight. Do all three types diets lead to weight loss? Which diet was the best for losing weight? Can the Kruskal-Wallis test be applied for this situation?
+b)  Apply one-way ANOVA to test whether type of diet has an effect on
+    the lost weight. Do all three types diets lead to weight loss? Which
+    diet was the best for losing weight? Can the Kruskal-Wallis test be
+    applied for this situation?
 
-To test whether the type of diet has an effect on weight loss, we will use a one-way ANOVA with diet as a factor. H_0: The means of the different groups are the same H_1: At least one sample mean is not equal to the others.
+To test whether the type of diet has an effect on weight loss, we will
+use a one-way ANOVA with diet as a factor. H_0: The means of the
+different groups are the same H_1: At least one sample mean is not equal
+to the others.
 
 ```{r}
 
@@ -74,41 +113,94 @@ plot(model_anova, 5)
 
 ```
 
-The ANOVA test shows a significant difference in weight lost between diet groups as the p-value \< 0.05 and we can reject the null hypothesis. The assumptions of the ANOVA seem to be met, with the residuals fairly evenly distributed and no obvious pattern in the residual plots. F = 6.197. The larger the F value, the more likely it is that the variance associated with the independent variable is real and cannot be explained by chance.
+The ANOVA test shows a significant difference in weight lost between
+diet groups as the p-value \< 0.05 and we can reject the null
+hypothesis. The assumptions of the ANOVA seem to be met, with the
+residuals fairly evenly distributed and no obvious pattern in the
+residual plots. F = 6.197. The larger the F value, the more likely it is
+that the variance associated with the independent variable is real and
+cannot be explained by chance.
 
-An ANOVA tells you whether there are differences between the groups of the independent variable, but not which differences are significant. To see how the groups differ from each other, perform a Tukey 's Honestly-Significant Difference (Tukey HSD) post-hoc analysis.
+An ANOVA tells you whether there are differences between the groups of
+the independent variable, but not which differences are significant. To
+see how the groups differ from each other, perform a Tukey 's
+Honestly-Significant Difference (Tukey HSD) post-hoc analysis.
 
 ```{r}
 # Tukey's HSD test
 TukeyHSD(model_anova)
 ```
 
-The Tukey test compares the groups pairwise and uses a conservative error estimate to find the groups that are statistically different from each other. Results provide the mean difference between each treatment (diet), the lower and upper bounds of the 95% confidence interval and the p-value corrected for multiple pairwise equations. As we can see, the difference between the average result of diet 2 and diet 1 is not significantly different, while there is a significant difference between diets 1 and 3 and diets 2 and 3 results.
+The Tukey test compares the groups pairwise and uses a conservative
+error estimate to find the groups that are statistically different from
+each other. Results provide the mean difference between each treatment
+(diet), the lower and upper bounds of the 95% confidence interval and
+the p-value corrected for multiple pairwise equations. As we can see,
+the difference between the average result of diet 2 and diet 1 is not
+significantly different, while there is a significant difference between
+diets 1 and 3 and diets 2 and 3 results.
 
-Kruskal-Wallis test. Technically the Kruskal-Wallis test can be applied in this situation as an alternative to the one-way ANOVA if the assumptions of normality and homogeneity of variances are not met. However, based on the graphical summary of the data and the normal probability plot of the residuals from the ANOVA model, the assumptions seem to be reasonably satisfied, so the ANOVA is more appropriate in this situation.
+Kruskal-Wallis test. Technically the Kruskal-Wallis test can be applied
+in this situation as an alternative to the one-way ANOVA if the
+assumptions of normality and homogeneity of variances are not met.
+However, based on the graphical summary of the data and the normal
+probability plot of the residuals from the ANOVA model, the assumptions
+seem to be reasonably satisfied, so the ANOVA is more appropriate in
+this situation.
 
-c)  Use two-way ANOVA to investigate effect of the diet and gender (and possible interaction) on the lost weight.
+c)  Use two-way ANOVA to investigate effect of the diet and gender (and
+    possible interaction) on the lost weight.
 
-To perform a two-way ANOVA we will use weight.lost as the response variable, diet and gender as the factors, and their interaction. It is possible that the effect of diet on weight loss differs between males and females, or that the effect of gender on weight loss differs depending on the type of diet. Therefore, this model allows for different effects of diet and gender on weight loss and also for an interaction effect between diet and gender, which can be tested for significance.
+To perform a two-way ANOVA we will use weight.lost as the response
+variable, diet and gender as the factors, and their interaction. It is
+possible that the effect of diet on weight loss differs between males
+and females, or that the effect of gender on weight loss differs
+depending on the type of diet. Therefore, this model allows for
+different effects of diet and gender on weight loss and also for an
+interaction effect between diet and gender, which can be tested for
+significance.
 
-H0: There is no significant difference in weight lost between the three types of diet. H1: There is a significant difference in weight lost between at least two of the three types of diet.
+H0: There is no significant difference in weight lost between the three
+types of diet. H1: There is a significant difference in weight lost
+between at least two of the three types of diet.
 
-H0: There is no significant difference in weight lost between males and females. H1: There is a significant difference in weight lost between males and females.
+H0: There is no significant difference in weight lost between males and
+females. H1: There is a significant difference in weight lost between
+males and females.
 
-H0: There is no significant interaction effect between diet and gender on weight lost. H1: There is a significant interaction effect between diet and gender on weight lost.
+H0: There is no significant interaction effect between diet and gender
+on weight lost. H1: There is a significant interaction effect between
+diet and gender on weight lost.
 
-The p-values obtained from the ANOVA table will allow us to determine whether to reject or fail to reject each of the null hypotheses. If the p-value is less than the significance level of 0.05, we reject the null hypothesis and conclude that there is a significant effect. Factors are used to represent categorical data.
+The p-values obtained from the ANOVA table will allow us to determine
+whether to reject or fail to reject each of the null hypotheses. If the
+p-value is less than the significance level of 0.05, we reject the null
+hypothesis and conclude that there is a significant effect. Factors are
+used to represent categorical data.
 
 ```{r}
 model <- aov(weight.lost ~ factor(diet) + factor(gender) + factor(diet):factor(gender), data = diet)
 summary(model)
 ```
 
-The results of the two-way ANOVA suggest that the type of diet has a significant effect on the lost weight with the significance level being 0.05 (p-value = 0.00215). At the same time the effect of gender is not significant (p-value = 0.15987). The interaction between diet and gender is significant (p-value = 0.04678).
+The results of the two-way ANOVA suggest that the type of diet has a
+significant effect on the lost weight with the significance level being
+0.05 (p-value = 0.00215). At the same time the effect of gender is not
+significant (p-value = 0.15987). The interaction between diet and gender
+is significant (p-value = 0.04678).
 
-e)  Which of the two approaches, the one from b) or the one from c), do you prefer? Why? For the preferred model, predict the lost weight for all three types of diet.
+e)  Which of the two approaches, the one from b) or the one from c), do
+    you prefer? Why? For the preferred model, predict the lost weight
+    for all three types of diet.
 
-The answer depends on the research question and the hypothesis being tested. If the research question is solely focused on the effect of diet on weight loss, then a one-way ANOVA for diet would be more appropriate. However, in this assignment the question was formulated a bit broader, so I would say that we prefer to pick a two-ways ANOVA as it provides more insightful result for our case. We consider stating the interaction factor between gender and diet valuable for the research question and consequently for hypothesis.
+The answer depends on the research question and the hypothesis being
+tested. If the research question is solely focused on the effect of diet
+on weight loss, then a one-way ANOVA for diet would be more appropriate.
+However, in this assignment the question was formulated a bit broader,
+so I would say that we prefer to pick a two-ways ANOVA as it provides
+more insightful result for our case. We consider stating the interaction
+factor between gender and diet valuable for the research question and
+consequently for hypothesis.
 
 ```{r}
 model <- aov(weight.lost ~ factor(diet) + factor(gender) + factor(diet):factor(gender), data = diet)
