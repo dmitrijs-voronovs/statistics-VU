@@ -84,13 +84,11 @@ wilcox.test(Before, After8weeks, paired=T)
 
 Both tests showed p values \< .05 which indicates that the we reject
 $H_0$ and accept $H_a$ , so **the low fat margarine diet has an effect
-on reduing cholesterol levels**.
+on reducing cholesterol levels**.
 
 Additionally, permutation test can be conducted, however due to the
 small sample size of 18 entries, test may not be reliable and paired
 t-test and Wilcoxon signed-rank test may be more appropriate.
-
-<!--# Should we make a permutation test? It's enough-->
 
 *c)  Let* $X_1,\ldots,X_{18}$ *be the column After8weeks. Assume*
 $X_1,\ldots,X_{18}\sim \text{Unif}[3,\theta]$, then use the central
@@ -98,40 +96,25 @@ limit theorem to find an estimate $\hat{\theta}$ *for* $\theta$ *and
 construct a 95%-CI for* $\theta$*. Can you improve this CI?*
 
 ```{r}
-x_bar <- mean(After8weeks)
-s <- sd(After8weeks)
+data <- After8weeks
+x.bar <- mean(data)
+theta.hat <- x.bar * 2 - 3
+z.val <- qnorm(.975) # z-value for a 95% CI
+n <- length(data)
+se <- sd(data) / sqrt(n)
+CI <- theta.hat - c(1,-1) * z.val * se
 
-# calculate estimate of theta and 95% CI
-theta_hat <- x_bar + qnorm(0.975) * s / sqrt(length(After8weeks))
-ci <- c(x_bar - qnorm(0.975) * s / sqrt(length(After8weeks)), theta_hat)
+theta.hat
+CI
 
-# print results
-cat("Estimate of theta:", theta_hat, "\n")
-cat("95% CI for theta:", ci, "\n")
 ```
 
 To improve the CI, we could try using a bootstrap approach to estimate
 the distribution of $\hat{\theta}$ and calculate a percentile CI.
 
-<!--# bootstrap here?? -->
-
-```{r}
-# calculate the sample mean and standard deviation
-x_bar <- mean(After8weeks)
-
-# calculate the standard error of the mean
-se <- sd(After8weeks) / sqrt(length(After8weeks))
-
-# calculate the confidence interval using the t-distribution
-t_val <- qt(0.025, df = length(After8weeks) - 1, lower.tail = F)
-ci <- x_bar + t_val * se * c(-1, 1)
-cat("95% confidence interval using t-distribution:", ci, "\n")
-
-# calculate the confidence interval using the normal distribution
-z_val <- qnorm(0.025, lower.tail = F)
-ci2 <- x_bar + z_val * se * c(-1, 1)
-cat("95% confidence interval using normal distribution:", ci2, "\n")
-```
+Another way is to increase sample size. More realistic way is to change
+normal distribution to a t-distribution, as the sample has only 18
+records.
 
 *d)  By using a bootstrap test with test statistic*
 $T=\max(X_1,\ldots,X_{18})$*, determine those* $\theta\in[3,12]$*, for
@@ -140,98 +123,108 @@ not rejected. Can the Kolmogorov-Smirnov test be also applied for this
 situation?*
 
 ```{r}
-#3.2
+n = 18
+t = max(After8weeks)
+nRep = 100
+
+unifTest = function(thetaMax) {
+  tstar = numeric(nRep)
+  for (i in 1:nRep) {
+    tstar[i] = max(runif(18, 3, thetaMax))
+  }
+  # manually calculate p-value
+  pl=mean(tstar<t)
+  pr=mean(tstar>t)
+  p=2*min(pl,pr)
+  p
+}
+
+# generate the sequence of possible thetas with the precision 0.001
+# in a given range [3,12]
+thetas = seq(3,12,.001)
+
+pvalues = numeric(length(thetas))
+for (i in 1:length(thetas)) {
+  thetaMax = thetas[i]
+  # get p-value of the bootstrap test
+  pvalues[i] = unifTest(thetaMax)
+}
+
+# retrieve thetas that did not reject H0 of the bootstrap test
+# and calculate the range
+range(thetas[pvalues > .05])
+
 ```
+
+For these $\theta$ ranges the hypothesis
+$X_1,\ldots,X_{18}\sim \text{Unif}[3,\theta]$ is not rejected (p value
+\> .05).
+
+It is also possible to determine the range using Kolmogorov-Smirnov
+test.
 
 ```{r}
-# calculate the sample mean and standard deviation
-x_bar <- mean(After8weeks)
+testIfUnif = function(thetaMax) {
+  ks.test(After8weeks, 'punif', 3, thetaMax)$p.value
+}
 
-# calculate the standard error of the mean
-se <- sd(After8weeks) / sqrt(length(After8weeks))
+thetas = seq(3,12,.001)
+pvalues = numeric(length(thetas))
+for (i in 1:length(thetas)) {
+  thetaMax = thetas[i]
+  pvalues[i] = testIfUnif(thetaMax)
+}
 
-# calculate the confidence interval using the t-distribution
-t_val <- qt(0.025, df = length(After8weeks) - 1, lower.tail = F)
-ci <- x_bar + t_val * se * c(-1, 1)
-cat("95% confidence interval using t-distribution:", ci, "\n")
-
-# calculate the confidence interval using the normal distribution
-z_val <- qnorm(0.025, lower.tail = F)
-ci2 <- x_bar + z_val * se * c(-1, 1)
-cat("95% confidence interval using normal distribution:", ci2, "\n")
+range(thetas[pvalues > .05])
 ```
+
+With a similar test setup we end up getting more precise $\theta$ range.
 
 *e)  Using an appropriate test, verify whether the median cholesterol
 level after 8 weeks of low fat diet is less than 6. Next, design and
 perform a test to check whether the fraction of the cholesterol levels
 after 8 weeks of low fat diet less than 4.5 is at most 25%.*
 
+In order to test median, one can use wilcoxon signed-rank test.
+
 ```{r}
-#median shift
-# wilcox.test(Before, After8weeks, paired=T, alternative = "greater", conf.int=T)
-# reject, so greater
-# median(After8weeks) < 6
-wilcox.test(After8weeks, mu=6, alternative="less")
-wilcox.test(After8weeks, mu = 6, alternative = "greater", exact = FALSE)
+wilcox.test(After8weeks, mu = 6, alternative="l", exact = T)
 ```
 
 Based on the output, we can see that the p-value is 0.223, which is
-greater than 0.05. Therefore, we fail to reject the null hypothesis and
-conclude that there is not enough evidence to suggest that the median
-cholesterol level after 8 weeks of low fat diet is less than 6.
+greater than 0.05. Therefore, we fail to reject the null hypothesis that
+that the median cholesterol level is $\ge$ 6. We also do not have enough
+evidence to conclude that that the median cholesterol level after 8
+weeks of low fat diet is less than 6.
+
+Let us take another approach and test the hypothesis with the binomial
+test.
 
 ```{r}
-# Store the Before and After8weeks data
-Before <- c(6.42, 6.76, 6.56, 4.8, 8.43, 7.49, 8.05, 5.05, 5.77, 3.91, 6.77, 6.44, 6.17, 7.67, 7.34, 6.85, 5.13, 5.73)
-After8weeks <- c(5.75, 6.13, 5.71, 4.15, 7.67, 7.05, 7.1, 4.67, 5.33, 3.66, 5.96, 5.64, 5.51, 6.96, 6.82, 6.29, 4.45, 5.17)
-
-# Calculate the observed test statistic
-obs_stat <- median(Before - After8weeks)
-
-# Set the number of permutations
-n_perm <- 10000
-
-# Initialize an empty vector to store the permuted test statistics
-perm_stats <- numeric(n_perm)
-
-# Permute the data and calculate the test statistic for each permutation
-for (i in 1:n_perm) {
-  perm_data <- sample(c(Before, After8weeks), size = length(Before), replace = FALSE)
-  perm_stat <- median(perm_data[1:length(Before)] - perm_data[(length(Before)+1):(2*length(Before))])
-  perm_stats[i] <- perm_stat
-}
-
-# Calculate the p-value
-p_val <- mean(perm_stats <= obs_stat)
-
-# Print the results
-cat("Observed test statistic:", obs_stat, "\n")
-cat("Permutation p-value:", p_val, "\n")
+n = length(After8weeks)
+xSuccess = sum(After8weeks > 6)
+binom.test(xSuccess, n, .5, alternative = 'l')
 ```
 
-another alg
+$H_0$ is not rejected. The confidence interval of the true proportion is
+[0.0000000 0.6078447] which does not help in this case, as it includes
+0.5 value.
 
 ```{r}
-less_than_4.5 <- sum(After8weeks < 4.5)
-binom.test(less_than_4.5, length(After8weeks), p = 0.25, alternative = "less")
+n = length(After8weeks)
+xSuccess = sum(After8weeks < 4.5)
+binom.test(xSuccess, n, .25, alternative = 'l')
 ```
 
-The p-value of 0.3057 suggests that there is no significant evidence to
-reject the null hypothesis, which in this case is that the fraction of
-cholesterol levels after the low-fat diet is less than 4.5 is at most
-25%.
+We fail to reject the null hypothesis (p\>0.3057) that the true
+proportion of cholesterol levels less than 4.5 is 0.25, and do not have
+evidence to conclude that the true proportion is less than 0.25.
 
-The confidence interval of (0.0000000, 0.3766792) suggests that the true
-fraction of cholesterol levels after the low-fat diet less than 4.5
-could range from 0 (which is not possible) to 0.3766792. Since the
-p-value is not significant, this confidence interval should be
-interpreted with caution.
-
-The probability of success of 0.1666667 indicates that only 1 out of the
-6 participants had a cholesterol level after the low-fat diet less than
-4.5, which is a low probability of success. However, as the p-value is
-not significant, we cannot conclude that this difference is
-statistically significant.
+The 95% confidence interval for the true proportion is [0.0000000
+0.3766792], which includes the value 0.25, providing further support for
+the null hypothesis. Therefore, we do not have strong evidence to
+conclude that the fraction of cholesterol levels after 8 weeks of
+low-fat diet less than 4.5 is at most 25%.
 
 ## Exercise 3
 
