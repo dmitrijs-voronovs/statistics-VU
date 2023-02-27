@@ -1,0 +1,53 @@
+---
+title: "Task 4"
+output: html_notebook
+---
+
+The dataset npk is available in the R package MASS. After loading the package MASS, type npk at the prompt to view this dataset. This dataset gives the yield of peas in pounds per plot, based on four factors: in which block the plot was located (labeled 1 through 6), and whether nitrogen (N), phosphate (P) or potassium (K) was applied to the soil (1 = applied, 0 = not applied). There are 24 plots, 4 per block. This is incomplete block design but balanced in the sense that within each block each soil additive is received by two plots. Our main question of interest is whether nitrogen N has an effect on yield.
+
+a)  Present an R-code for the randomization process to distribute soil additives over plots in such a way that each soil additive is received exactly by two plots within each block.
+
+We create separate vectors for the block, N, P, and K variables, and then combine them into a data frame. The rep function is used to repeat each treatment vector twice. The resulting data frame has 24 rows (one for each plot) and four columns (one for each variable).
+In the loop we randomly permute the order of plots within each block. We identify the indices of the rows corresponding to each block, and randomly permute these rows.
+
+```{r}
+library(MASS)
+npk
+
+block <- rep(1:6, each = 4)
+N <- rep(c(1, 1, 0, 0), 6)
+P <- rep(c(1, 0), each = 12)
+K <- rep(c(0, 1, 1, 0), 6)
+
+npk_df <- data.frame(block = block, N = N, P = P, K = K)
+
+# random permutations the order of plots within each block
+for(i in unique(block)) {
+  ind <- which(block == i)
+  npk_df[ind,] <- npk_df[sample.int(length(ind)),][,]
+}
+
+npk_df
+
+```
+
+b)  Make a plot to show the average yield per block for the soil treated with nitrogen and for the soil that did not receive nitrogen, and comment. What is the purpose to take the factor block into account?
+
+We first calculate the mean yield for each combination of block and nitrogen treatment using the aggregate() function. Then, we use ggplot() to create the plot.
+
+```{r}
+library(ggplot2)
+
+npk_means <- aggregate(yield ~ block + N, data = npk, mean)
+
+ggplot(npk_means, aes(x = block, y = yield, fill = factor(N))) +
+  geom_bar(stat = "identity", position = "dodge") +
+  scale_fill_discrete(name = "Nitrogen", labels = c("Not Applied", "Applied")) +
+  labs(x = "Block", y = "Average Yield (lbs/plot)") +
+  ggtitle("Average Yield per Block for Nitrogen Treatment") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+```
+
+From the plot, we can see that in all blocks, the average yield for the soil treated with nitrogen is higher than the yield for the soil that did not receive nitrogen.
+The purpose of taking the factor block into account is to control for the potential variability in yield that may be due to differences between the blocks, such as differences in soil type or other environmental factors. By using an incomplete block design and randomizing the treatment assignments within each block, we can ensure that any differences in yield between the treatment groups are not confounded with differences between the blocks. By analyzing the data using a linear model that includes the block factor, we can estimate the effect of nitrogen on yield while controlling for the variability between blocks.
