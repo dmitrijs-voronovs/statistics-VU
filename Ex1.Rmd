@@ -63,7 +63,6 @@ boot_mean <- function(data) {
 Generate 10000 bootstrap samples and store the means in a vector.
 
 ```{r}
-set.seed(123)
 boot_means <- replicate(10000, boot_mean(dataset$birthweight))
 ```
 
