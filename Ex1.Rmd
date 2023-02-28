@@ -1,36 +1,51 @@
 ---
-title: "Task 1"
-output: html_notebook
+title: "Assignment 1"
+author: "Group 69"
+date: "24.02.2023"
+output: 
+  pdf_document: 
+    latex_engine: lualatex
+fontsize: 11pt
+highlight: tango
 editor_options: 
   markdown: 
-    wrap: sentence
+    wrap: 72
 ---
 
-The data set birthweight.txt contains the birthweights (in grams) of 188 newborn babies.
-Denote the underlying mean birthweight by μ.
+The data set birthweight.txt contains the birthweights (in grams) of 188
+newborn babies. Denote the underlying mean birthweight by mu.
 
-a)  Check normality of the data. Assuming normality (irrespective of your conclusion about normality), construct a bounded 96%-CI for μ. Evaluate the sample size needed to provide that the length of the 96%-CI is at most 100. Compute a bootstrap 96%-CI for μ and compare it to the above CI.
+a)  Check normality of the data. Assuming normality (irrespective of
+    your conclusion about normality), construct a bounded 96%-CI for mu.
+    Evaluate the sample size needed to provide that the length of the
+    96%-CI is at most 100. Compute a bootstrap 96%-CI for mu and compare
+    it to the above CI.
 
-To start with we import the birthweight.txt dataset and store it to the respective variable.
+To start with we import the birthweight.txt dataset and store it to the
+respective variable.
 
-To make an assumption about the distribution we display the data using the following function.
+To make an assumption about the distribution we display the data using
+the following function.
 
 ```{r}
 dataset = read.table("birthweight.txt", header = T)
 hist(dataset$birthweight, main="Histogram of Birthweights")
 ```
 
-After running the histogram we observe a bell-shaped form, which indicates that the data is normally distributed.
-Although we can clearly see the shape, the histogram alone isn't a good indicator of normally distributed data.
+After running the histogram we observe a bell-shaped form, which
+indicates that the data is normally distributed. Although we can clearly
+see the shape, the histogram alone isn't a good indicator of normally
+distributed data.
 
 ```{r}
 qqnorm(dataset$birthweight, main="Normal Probability Plot of Birthweights")
 ```
 
-We run the qqnorm function to confirm the distribution.
-A nearly straight line indicates that the distribution is indeed normal.
+We run the qqnorm function to confirm the distribution. A nearly
+straight line indicates that the distribution is indeed normal.
 
-To construct the 96%-CI for the μ birthweight the following calculations are performed.
+To construct the 96%-CI for the mu birthweight the following
+calculations are performed.
 
 ```{r}
 n <- length(dataset$birthweight)
@@ -39,19 +54,23 @@ t_star <- qt(0.98, df=n-1)
 ci <- c(mean(dataset$birthweight) - t_star*se, mean(dataset$birthweight) + t_star*se)
 ```
 
-To get the 96%-CI of the mean we find the sample size (n), standard error (se), and critical value of t-distribution (t_star).
-We apply the formula μ̄ ± t \* (se/√n).
+To get the 96%-CI of the mean we find the sample size (n), standard
+error (se), and critical value of t-distribution (t_star). We apply the
+formula mū ± t \* (se/√n).
 
-To evaluate the sample size needed to provide that the length of the 96%-CI is at most 100.
+To evaluate the sample size needed to provide that the length of the
+96%-CI is at most 100.
 
 ```{r}
 t_star <- qt(0.98, df=1e6)
 n <- ceiling(((t_star * sd(dataset$birthweight) / 50) ^ 2))
 ```
 
-Here the t_star uses other df value that denotes an arbitrary large sample size that we need for our calculation.
+Here the t_star uses other df value that denotes an arbitrary large
+sample size that we need for our calculation.
 
-To compute a bootstrap 96%-CI for μ define a function to generate a bootstrap sample and compute the mean of the sample.
+To compute a bootstrap 96%-CI for mu define a function to generate a
+bootstrap sample and compute the mean of the sample.
 
 ```{r}
 boot_mean <- function(data) {
@@ -66,33 +85,45 @@ Generate 10000 bootstrap samples and store the means in a vector.
 boot_means <- replicate(10000, boot_mean(dataset$birthweight))
 ```
 
-Calculate the 2.5th and 97.5th percentiles of the bootstrapped means to obtain the 96% CI.
+Calculate the 2.5th and 97.5th percentiles of the bootstrapped means to
+obtain the 96% CI.
 
 ```{r}
 boot_ci <- quantile(boot_means, c(0.025, 0.975))
 ```
 
-So the values of the bootstrap CI to the one obtained using the t-distribution could be compared.
+So the values of the bootstrap CI to the one obtained using the
+t-distribution could be compared.
 
 ```{r}
 ci
 boot_ci
 ```
 
-b)  An expert claims that the mean birthweight is bigger than 2800 gram. Verify this claim by using a relevant t-test, explain the meaning of the CI in the R-output for this test. Also propose and perform a suitable sign tests for this problem.
+b)  An expert claims that the mean birthweight is bigger than 2800 gram.
+    Verify this claim by using a relevant t-test, explain the meaning of
+    the CI in the R-output for this test. Also propose and perform a
+    suitable sign tests for this problem.
 
-To verify the claim a one-sample t-test could be performed with null hypothesis H0: μ = 2800 and alternative hypothesis Ha: μ \> 2800.
-Here, μ represents the true population mean birthweight.
+To verify the claim a one-sample t-test could be performed with null
+hypothesis H0: mu = 2800 and alternative hypothesis Ha: mu \> 2800.
+Here, mu represents the true population mean birthweight.
 
 ```{r}
 t.test(dataset, mu=2800, alternative="greater")
 ```
 
-The output of this test includes the test statistic (t-value), the p-value, and a confidence interval for the population mean.
-The p-value represents the probability of observing a sample mean at least as extreme as the one we obtained, assuming that the null hypothesis is true.
+The output of this test includes the test statistic (t-value), the
+p-value, and a confidence interval for the population mean. The p-value
+represents the probability of observing a sample mean at least as
+extreme as the one we obtained, assuming that the null hypothesis is
+true.
 
-The p-value is 0.01357 which is less than the significance level, so we reject the null hypothesis and conclude that there is strong evidence to suggest that the mean birthweight is indeed greater than 2800 gram.
-The confidence interval also supports this conclusion, as it does not include 2800 gram.
+The p-value is 0.01357 which is less than the significance level, so we
+reject the null hypothesis and conclude that there is strong evidence to
+suggest that the mean birthweight is indeed greater than 2800 gram. The
+confidence interval also supports this conclusion, as it does not
+include 2800 gram.
 
 Alternatively a sign test can be performed to confirm the hypothesis.
 
@@ -102,43 +133,65 @@ sign_test <- binom.test(sum(dataset$birthweight > 2800), n, p=0.5, alternative="
 sign_test
 ```
 
-The output of this test will include the test statistic (the number of observations above 2800 gram), the p-value, and a confidence interval for the true proportion of observations that are above 2800 gram.
-Assuming the output p-value we reject the null hypothesis in favor of alternative hypothesis.
+The output of this test will include the test statistic (the number of
+observations above 2800 gram), the p-value, and a confidence interval
+for the true proportion of observations that are above 2800 gram.
+Assuming the output p-value we reject the null hypothesis in favor of
+alternative hypothesis.
 
-c)  Propose a way to compute the powers of the t-test and sing test from b) at some μ \> 2800, comment.
+c)  Propose a way to compute the powers of the t-test and sing test from
+    b)  at some mu \> 2800, comment.
 
-To compute the power of the t-test, we need to specify a hypothetical value of the mean birthweight, denoted by μ1, which is greater than 2800g.
-Let's say we choose μ1 = 2850g.
-Then we can use the following approach to compute the power.
+To compute the power of the t-test, we need to specify a hypothetical
+value of the mean birthweight, denoted by mu1, which is greater than
+2800g. Let's say we choose mu1 = 2850g. Then we can use the following
+approach to compute the power.
 
-For the t-test, we can compute the t-value and p-value for the null hypothesis H0: μ = 2800g versus the alternative hypothesis Ha: μ \> 2800g, using the formula: t = (μ -μ0)/(sd/sqrt(n)).
+For the t-test, we can compute the t-value and p-value for the null
+hypothesis H0: mu = 2800g versus the alternative hypothesis Ha: mu \>
+2800g, using the formula: t = (mu -mu0)/(sd/sqrt(n)).
 
-The p-value can then be obtained from the t-distribution with n - 1 degrees of freedom.
-Once we have the p-value, we can compute the power of the test for the specified value of μ1.
+The p-value can then be obtained from the t-distribution with n - 1
+degrees of freedom. Once we have the p-value, we can compute the power
+of the test for the specified value of mu1.
 
-For the sign test the p-value can be computed for the null hypothesis H0: P(X \> 2800) = 0.5 against the alternative hypothesis Ha: P(X \> 2800) \> 0.5 using the binomial distribution: p = sum(dbinom(k:n, n, 0.5)),
+For the sign test the p-value can be computed for the null hypothesis
+H0: P(X \> 2800) = 0.5 against the alternative hypothesis Ha: P(X \>
+2800) \> 0.5 using the binomial distribution: p = sum(dbinom(k:n, n,
+0.5)),
 
 k - number of observations greater than 2800g.
 
-The p-value is then compared to the significance level α to determine whether to reject or fail to reject the null hypothesis.
+The p-value is then compared to the significance level α to determine
+whether to reject or fail to reject the null hypothesis.
 
-d)  Let p be the probability that birthweight of a newborn baby is less than 2600 gram. Using asymptotic normality, the expert computed the left end p\^l = 0.25 of the confidence interval [p^l,p^r] for p. Recover the whole confidence interval and its confidence level.
+d)  Let p be the probability that birthweight of a newborn baby is less
+    than 2600 gram. Using asymptotic normality, the expert computed the
+    left end p\^l = 0.25 of the confidence interval [p^l,p^r] for p.
+    Recover the whole confidence interval and its confidence level.
 
-If the probability that birthweight of a newborn baby is less than 2600 gram is p, then the number of newborn babies out of 188 with birthweights less than 2600 gram follows a binomial distribution with parameters n = 188 and p.
-Assuming that the sample size is large enough, we can approximate the distribution of the sample proportion by a normal distribution with mean p and variance p(1-p)/n.
+If the probability that birthweight of a newborn baby is less than 2600
+gram is p, then the number of newborn babies out of 188 with
+birthweights less than 2600 gram follows a binomial distribution with
+parameters n = 188 and p. Assuming that the sample size is large enough,
+we can approximate the distribution of the sample proportion by a normal
+distribution with mean p and variance p(1-p)/n.
 
-The expert computed the left end p\^l = 0.25 of the confidence interval [p\^l, p\^r] for p.
-Since the normal distribution is symmetric, we have p\^r = 1 - p\^l = 1 - 0.25 = 0.75.
+The expert computed the left end p\^l = 0.25 of the confidence interval
+[p\^l, p\^r] for p. Since the normal distribution is symmetric, we have
+p\^r = 1 - p\^l = 1 - 0.25 = 0.75.
 
-To recover the whole confidence interval, we need to find the z-value that corresponds to the left tail probability of 0.25.
-We can use the qnorm() function in R to find this value.
+To recover the whole confidence interval, we need to find the z-value
+that corresponds to the left tail probability of 0.25. We can use the
+qnorm() function in R to find this value.
 
 ```{r}
 z_star <- qnorm(0.25)
 z_star
 ```
 
-Using the normal approximation to the binomial distribution, the confidence interval for p is.
+Using the normal approximation to the binomial distribution, the
+confidence interval for p is.
 
 ```{r}
 p_hat <- sum(dataset$birthweight < 2600) / nrow(dataset)
@@ -147,8 +200,14 @@ ci_p <- p_hat + z_star * se_p + c(0, 1) * 1.96 * se_p
 ci_p
 ```
 
-e)  The expert also reports that there were 34 male and 28 female babies among 62 who weighted less than 2600 gram, and 61 male and 65 female babies among the remaining 126 babies. The expert claims that the mean weight is different for male and female babies. Verify this claim by an appropriate test.
+e)  The expert also reports that there were 34 male and 28 female babies
+    among 62 who weighted less than 2600 gram, and 61 male and 65 female
+    babies among the remaining 126 babies. The expert claims that the
+    mean weight is different for male and female babies. Verify this
+    claim by an appropriate test.
 
-To test if the mean birthweight is different for male and female babies, we can perform a two-sample t-test.
+To test if the mean birthweight is different for male and female babies,
+we can perform a two-sample t-test.
 
-First, we can split the data into two groups based on the gender of the newborns.
+First, we can split the data into two groups based on the gender of the
+newborns.

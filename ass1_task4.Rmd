@@ -7,8 +7,7 @@ The dataset npk is available in the R package MASS. After loading the package MA
 
 a)  Present an R-code for the randomization process to distribute soil additives over plots in such a way that each soil additive is received exactly by two plots within each block.
 
-We create separate vectors for the block, N, P, and K variables, and then combine them into a data frame. The rep function is used to repeat each treatment vector twice. The resulting data frame has 24 rows (one for each plot) and four columns (one for each variable).
-In the loop we randomly permute the order of plots within each block. We identify the indices of the rows corresponding to each block, and randomly permute these rows.
+We create separate vectors for the block, N, P, and K variables, and then combine them into a data frame. The rep function is used to repeat each treatment vector twice. The resulting data frame has 24 rows (one for each plot) and four columns (one for each variable). In the loop we randomly permute the order of plots within each block. We identify the indices of the rows corresponding to each block, and randomly permute these rows.
 
 ```{r}
 library(MASS)
@@ -49,5 +48,6 @@ ggplot(npk_means, aes(x = block, y = yield, fill = factor(N))) +
 
 ```
 
-From the plot, we can see that in all blocks, the average yield for the soil treated with nitrogen is higher than the yield for the soil that did not receive nitrogen.
-The purpose of taking the factor block into account is to control for the potential variability in yield that may be due to differences between the blocks, such as differences in soil type or other environmental factors. By using an incomplete block design and randomizing the treatment assignments within each block, we can ensure that any differences in yield between the treatment groups are not confounded with differences between the blocks. By analyzing the data using a linear model that includes the block factor, we can estimate the effect of nitrogen on yield while controlling for the variability between blocks.
+From the plot, we can see that in all blocks, the average yield for the soil treated with nitrogen is higher than the yield for the soil that did not receive nitrogen. The purpose of taking the factor block into account is to control for the potential variability in yield that may be due to differences between the blocks, such as differences in soil type or other environmental factors. By using an incomplete block design and randomizing the treatment assignments within each block, we can ensure that any differences in yield between the treatment groups are not confounded with differences between the blocks. By analyzing the data using a linear model that includes the block factor, we can estimate the effect of nitrogen on yield while controlling for the variability between blocks.
+
+c) Conduct a full two-way ANOVA with the response variable yield and the two factors block and N. Was it sensible to include factor block into this model? Can we also apply the Friedman test for this situation? Comment.
