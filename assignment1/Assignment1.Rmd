@@ -752,11 +752,7 @@ for all the models). Test for the presence of main effects of N, P and
 K, possibly taking into account factor block. Give your favorite model
 and motivate your choice.*
 
-```{# {r}
-# npk_df2 = cbind(npk_df, yield=npk$yield)
-# npklm = lm(yield ~ factor(N)+factor(P)+factor(K), data=npk_df2)
-# anova(npklm)
-```
+`{# {r} # npk_df2 = cbind(npk_df, yield=npk$yield) # npklm = lm(yield ~ factor(N)+factor(P)+factor(K), data=npk_df2) # anova(npklm)`
 
 *e)  Recall the main question of interest. In this light, repeat c) by
 performing a mixed effects analysis, modeling the block variable as a
