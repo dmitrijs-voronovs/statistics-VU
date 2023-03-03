@@ -133,11 +133,96 @@ anova(volumeOptimallm)
 
 ## Exercise 2
 
+<!--# 
+
+The data in expensescrime.txt Download expensescrime.txt were obtained to determine factors related to state expenditures on criminal activities (courts, police, etc.) The variables are: state (indicating the state in the USA), expend (state expenditures on criminal activities in $1000), bad (crime rate per 100000), crime (number of persons under criminal supervision), lawyers (number of lawyers in the state), employ (number of persons employed in the state) and pop (population of the state in 1000). In the regression analysis, take expend as response variable and bad, crime, lawyers, employ and pop as explanatory variables.
+
+ -->
+
 ### a)
+
+<!--# 
+
+a)  Make some graphical summaries of the data. Investigate the problem of influence points, and the problem of collinearity.
+
+ -->
+
+```{r}
+expensescrime = read.table("expensescrime.txt", header = T)
+pairs(expensescrime[,-1])
+```
+
+Influence points:
+
+many paired scatter plots (i.e. expend vs bad, layers vs employ) have
+most of the data is skewed to the left and there are strong outliers on
+the right.
+
+<!--# TODO: add plots, etc. -->
+
+Collinearity:
+
+Multiple variables are clearly collinear: bad & employ
+(`cor(expensescrime$bad, expensescrime$employ)` is 0.871), bad & lawyers
+(0.832), bad & pop (0.92), lawyers & employ (0.966), lawyers & pop
+(0.934)
 
 ### b)
 
+<!--# b)  Fit a linear regression model to the data. Use the step-up method to find the best model. Comment. -->
+
+<!--# TODO: Cleanup afterwards -->
+
+```{r}
+summary(lm(expend ~ factor(bad), data=expensescrime))$r.squared
+summary(lm(expend ~ bad, data=expensescrime))$r.squared
+summary(lm(expend ~ crime, data=expensescrime))$r.squared
+summary(lm(expend ~ lawyers, data=expensescrime))$r.squared
+summary(lm(expend ~ employ, data=expensescrime))$r.squared
+summary(lm(expend ~ pop, data=expensescrime))$r.squared
+
+
+```
+
+<!--# TODO: should we use factor(bad) only or with others as well? Should we include it??? It always gives 1 -->
+
+The first variable to add is **employ**, as it is significant and yields
+the best multiple R-squared value **0.9539745**
+
+```{r}
+summary(lm(expend ~ employ + bad, data=expensescrime))$r.squared
+summary(lm(expend ~ employ + crime, data=expensescrime))$r.squared
+summary(lm(expend ~ employ + lawyers, data=expensescrime))$r.squared
+summary(lm(expend ~ employ + pop, data=expensescrime))$r.squared
+```
+
+Next one to add is **lawyers** with the R-squared value **0.9631745**
+
+```{r}
+summary(lm(expend ~ employ + lawyers + bad, data=expensescrime))$r.squared
+summary(lm(expend ~ employ + lawyers + crime, data=expensescrime))$r.squared
+summary(lm(expend ~ employ + lawyers + pop, data=expensescrime))$r.squared
+```
+
+Other variables upon testing showed no significance, therefore the final
+model is
+
+```{r}
+model = lm(expend ~ employ + lawyers, data=expensescrime)
+```
+
 ### c)
+
+<!--# c)  Determine a 95% prediction interval for the expend using the model you preferred in b) for a (hypothetical) state with bad=50, crime=5000, lawyers=5000, employ=5000 and pop=5000. Can you improve this interval? -->
+
+```{r}
+newData = data.frame(bad=50, crime=5000, lawyers=5000, employ=5000, pop=5000)
+predict(model, newData, interval = 'prediction')
+```
+
+Interval may be improved by adding interaction between variables. That
+could possible result in a better fit, thus precise interval and a
+predication.
 
 ### d)
 
