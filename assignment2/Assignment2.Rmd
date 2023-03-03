@@ -230,9 +230,86 @@ predication.
 
 ### a)
 
+<!--# a)  Study the data and give a few (>1) summaries (graphics or tables). Fit a logistic regression model (no interactions yet) to investigate the association between the survival status and the predictors PClass, Age and Sex. Interpret the results in terms of odds, comment. -->
+
+```{r}
+titanic = read.table("titanic.txt", header = T)
+```
+
+```{r}
+titlm = lm(Survived ~ factor(PClass) + Age + factor(Sex), data=titanic)
+summary(titlm)
+```
+
+<!--# TODO: Why is that? -->
+
+All the predictor variables show significance. Female sex is not
+represented in the summary
+
 ### b)
 
+<!--# b)  Investigate the interaction of predictor Age with PClass, and the interaction of Age with Sex. From this and a), choose (and justify) a resulting model. For this model, report the estimate for the probability of survival for each combination of levels of the factors PClass and Sex for a person of age 55. -->
+
+```{r}
+titIntlm1 = lm(Survived ~ factor(PClass) + Age + factor(Sex) + factor(PClass):Age, data=titanic)
+summary(titIntlm1)
+
+titIntlm2 = lm(Survived ~ factor(PClass) + Age + factor(Sex) + factor(Sex):Age, data=titanic)
+summary(titIntlm2)
+
+titIntlm3 = lm(Survived ~ factor(PClass) + Age + factor(Sex) + factor(PClass):Age + factor(Sex):Age, data=titanic)
+summary(titIntlm3)
+```
+
+<!--# TODO: how to interpret? Look at RSE only and p-values for interactions? -->
+
+<!--# TODO: when testing interactions, are there any benefits in compering them separately or including all of them in a single model and comparing in a final summary? -->
+
+*PClass : age* interaction is not significant, thus it should not be
+included in the final model, while *age : sex* interaction is shown as
+significant only for male. The proposal for the final model is as
+follows
+
+```{r}
+tlm = lm(Survived ~ factor(PClass) + Age + factor(Sex) + factor(Sex):Age, data=titanic)
+summary(tlm)
+
+tlm = lm(Survived ~ factor(PClass) + factor(Sex) + factor(Sex):Age, data=titanic)
+summary(tlm)
+```
+
+<!--# TODO: is that true? Why no RSE change? -->
+
+Age is not significant by itself anymore, thus it can be removed.
+
 ### c)
+
+<!--# c) Propose a method to predict the survival status and a quality measure for your prediction and describe how you would implement that method (you do not need to implement it). -->
+
+<!--# Refine: -->
+
+One method to predict the survival status is to use the final model tlm
+and apply it to new data containing the predictor variables for each
+passenger. The resulting model can be used to predict the probability of
+survival for each passenger.
+
+To measure the quality of the prediction, we can use metrics such as
+accuracy, precision, recall, and F1-score. These metrics compare the
+predicted survival status to the actual survival status for each
+passenger. Accuracy measures the overall proportion of correct
+predictions, while precision measures the proportion of true positives
+among all positive predictions and recall measures the proportion of
+true positives among all actual positives. The F1-score is the harmonic
+mean of precision and recall and provides a balanced measure of the
+model's performance.
+
+To implement this method, we would first split the titanic dataset into
+a training set and a test set. We would then fit the final model tlm to
+the training set and use it to predict the survival status for each
+passenger in the test set. We would calculate the quality measures for
+the predictions and use them to evaluate the performance of the model.
+If the performance is satisfactory, we can use the model to predict the
+survival status for new passengers in the future.
 
 ### d)
 
@@ -241,6 +318,17 @@ predication.
 ## Exercise 4
 
 ### a)
+
+<!--# a)  Perform Poisson regression on the full data set, taking miltcoup as response variable. Comment on your findings. -->
+
+```{r}
+coups = read.table("coups.txt", header = T)
+```
+
+```{r}
+model <- glm(miltcoup ~ ., data = coups, family = "poisson")
+summary(model)
+```
 
 ### b)
 
