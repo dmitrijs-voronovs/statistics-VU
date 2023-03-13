@@ -368,8 +368,6 @@ irrespective of the class.
 
 <!--# c) Propose a method to predict the survival status and a quality measure for your prediction and describe how you would implement that method (you do not need to implement it). -->
 
-<!--# TODO: anything else?? -->
-
 One method to predict the survival status is to use the final model
 **tlm** and apply it to new data containing the predictor variables for
 each passenger. Moreover, we can divide the dataset into training and
@@ -379,6 +377,8 @@ the testing set. We compute metrics such as accuracy and precision to
 evaluate the model's performance. This process is repeated until we find
 the best-performing model, which we can use to predict the survival
 status of new passengers based on their characteristics.
+
+<!--# TODO: anything else?? -->
 
 ### d)
 
