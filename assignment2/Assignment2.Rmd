@@ -204,11 +204,16 @@ pairs(expensescrime[,-1])
 
 Influence points:
 
-many paired scatter plots (i.e. expend vs bad, layers vs employ) have
-most of the data is skewed to the left and there are strong outliers on
-the right.
+many paired scatter plots (i.e. expend vs bad, lawyers vs employ) have
+most of the data skewed to one side and some strong outliers on the
+other side.
 
-<!--# TODO: add plots, etc. -->
+```{r}
+par(mfrow=c(1,2))
+plot(expend ~ bad, data=expensescrime)
+plot(lawyers ~ employ, data=expensescrime)
+par(mfrow=c(1,1))
+```
 
 Collinearity:
 
@@ -217,14 +222,13 @@ Multiple variables are clearly collinear: bad & employ
 (0.832), bad & pop (0.92), lawyers & employ (0.966), lawyers & pop
 (0.934)
 
+<!--# TODO: add some more plots??? -->
+
 ### b)
 
 <!--# b)  Fit a linear regression model to the data. Use the step-up method to find the best model. Comment. -->
 
-<!--# TODO: Cleanup afterwards -->
-
 ```{r}
-summary(lm(expend ~ factor(bad), data=expensescrime))$r.squared
 summary(lm(expend ~ bad, data=expensescrime))$r.squared
 summary(lm(expend ~ crime, data=expensescrime))$r.squared
 summary(lm(expend ~ lawyers, data=expensescrime))$r.squared
@@ -233,8 +237,6 @@ summary(lm(expend ~ pop, data=expensescrime))$r.squared
 
 
 ```
-
-<!--# TODO: should we use factor(bad) only or with others as well? Should we include it??? It always gives 1 -->
 
 The first variable to add is **employ**, as it is significant and yields
 the best multiple R-squared value **0.9539745**
@@ -270,9 +272,10 @@ newData = data.frame(bad=50, crime=5000, lawyers=5000, employ=5000, pop=5000)
 predict(model, newData, interval = 'prediction')
 ```
 
-Interval may be improved by adding interaction between variables. That
-could possible result in a better fit, thus precise interval and a
-predication.
+In order to improve the interval we should revise the expend column. As
+per definition, expend - state expenditures on criminal activities in
+\$1000. Consequently, expend should always be **\>0**, thus the new
+interval is **[0, 647.3504]**
 
 ### d)
 
