@@ -1,6 +1,6 @@
 ---
 title: "Assignment 1"
-author: "Group 69: Dmitrijs Voronovs (2779206), Nikita ..., Alina ..."
+author: "Group 69: Dmitrijs Voronovs (2779206), Alina ..."
 date: "24.02.2023"
 output: 
   pdf_document: 
@@ -59,8 +59,8 @@ T-test shows the p-value 0.1659, indicating that we do not reject a null
 hypothesis. That indicated the difference in means between volumes of
 beech and oak is different.
 
-T-test also displays estimates of mean for group beech (30.17097) and
-oak (35.25000)
+T-test also displays estimates of mean for group beech (30.17) and oak
+(35.25)
 
 ### b)
 
@@ -70,16 +70,22 @@ b)  Now include diameter and height as explanatory variables into the analysis.
  -->
 ```
 ```{r results='hide'}
-volumeFulllm1 = lm(volume ~ factor(height) + factor(type) * factor(diameter), data = treeVolume)
-anova(volumeFulllm1)
+volumelm1 = lm(volume ~ height + factor(type) * diameter, data = treeVolume)
+anova(volumelm1)
 ```
 
-<!--#TODO: clarify that summary shows only factor(type)oak.Should we use separate data for each model i.e. oak_data <- subset(treeVolume, type == "oak")-->
+According to the p-value (0.474) of type and diameter interaction, there
+is no significant difference between the influence of diameter to volume
+for different tree types.
 
 ```{r}
-volumeFulllm2 = lm(volume ~ factor(diameter) + factor(type) * factor(height), data = treeVolume)
-anova(volumeFulllm2)
+volumelm2 = lm(volume ~ diameter + factor(type) * height, data = treeVolume)
+anova(volumelm2)
 ```
+
+Similarly, the p-value (0.176) of type and height interaction tells that
+there is no significant difference between the influence of height to
+volume for different tree types.
 
 ### c)
 
@@ -90,23 +96,57 @@ c)  Using the results from c), investigate how diameter, height and type influe
 
  -->
 ```
-```{r}
-volumeFulllm = lm(volume ~ factor(diameter) + factor(height) + factor(type), data = treeVolume)
+According the anova results in **b)**, there is no need to include
+interaction terms with tree type.
+
+```{r results='hide'}
+volumeFulllm = lm(volume ~ diameter + height + factor(type), data = treeVolume)
 anova(volumeFulllm)
 ```
 
-<!--# TODO: how to comment? -->
+However, after analyzing the output of anova for the new model, it
+becomes clear that type can also be excluded, as it is not significant
+(p-value = 0.143).
+
+```{r results='hide'}
+volumeFulllm = lm(volume ~ diameter + height, data = treeVolume)
+anova(volumeFulllm)
+```
+
+There is one more opportunity left to improve the final model by testing
+the interaction of diameter and height.
 
 ```{r}
-# TODO: how to use mean here? We were training on factors
-# d = mean(treeVolume$diameter)
-# h = mean(treeVolume$height)
-d = median(treeVolume$diameter)
-h = median(treeVolume$height)
-avgTree = data.frame(diameter=d, height=h, type="oak")
-avgTrees = data.frame(diameter=c(d,d), height=c(h,h), type=c("oak", "beech"))
+volumeFulllm = lm(volume ~ diameter * height, data = treeVolume)
+anova(volumeFulllm)
+```
 
-predict(volumeFulllm, avgTree, interval = 'prediction')
+And according to the output this time interaction is significant. Thus
+let us test the anova assumptions.
+
+```{r}
+par(mfrow=c(1,2))
+qqnorm(residuals(volumeFulllm))
+qqline(residuals(volumeFulllm))
+plot(fitted(volumelm), residuals(volumelm))
+par(mfrow=c(1,1))
+
+```
+
+Residuals seem to follow normal distribution, while spread in the
+residuals seems to be bigger for smaller fitted values, also some points
+are extreme.
+
+Now we can predict the volume of overall average diameter and height
+tree which is
+
+```{r}
+d = mean(treeVolume$diameter)
+h = mean(treeVolume$height)
+avgTree = data.frame(diameter=d, height=h, type="oak")
+
+unname(predict(volumeFulllm, avgTree))
+
 ```
 
 ### d)
@@ -118,35 +158,45 @@ d)  Propose a transformation of the explanatory variables that possibly yields 
 
  -->
 ```
-The least significant factor can be removed from the explanation, which
-is type, as when calculating the volume only height and diameter should
-be of a significance. However, while type by itself does nothing, it
-explains the height or the diameter, therefore its interaction with one
-of other factors should be included.
+For the natural transformation of data, let us use the formula of
+cylinder volume $V = \pi*r^2*h$
 
 ```{r}
-volumeOptimallm = lm(volume ~ factor(diameter) + factor(height) + factor(height):factor(type), data = treeVolume)
-anova(volumeOptimallm)
+perfectVolume = pi * (treeVolume$diameter / 2)**2 * treeVolume$height
+volumePerfectlm = lm(treeVolume$volume ~ perfectVolume)
+anova(volumePerfectlm)
 ```
 
-<!--# TODO: is it good enough? How to measure the model effectivnesS? lecture 8, Diagnostic in linear regression?? -->
+One way to compare model effectiveness is to compare residual standard
+error.
+
+```{r results='hide'}
+summary(volumeFulllm)
+summary(volumePerfectlm)
+```
+
+Residual standard error for previous model is **2.788**, while for the
+more natural one is **2.284**, which indicates that it is performing
+better.
 
 ## Exercise 2
 
+```{=html}
 <!--# 
 
 The data in expensescrime.txt Download expensescrime.txt were obtained to determine factors related to state expenditures on criminal activities (courts, police, etc.) The variables are: state (indicating the state in the USA), expend (state expenditures on criminal activities in $1000), bad (crime rate per 100000), crime (number of persons under criminal supervision), lawyers (number of lawyers in the state), employ (number of persons employed in the state) and pop (population of the state in 1000). In the regression analysis, take expend as response variable and bad, crime, lawyers, employ and pop as explanatory variables.
 
  -->
-
+```
 ### a)
 
+```{=html}
 <!--# 
 
 a)  Make some graphical summaries of the data. Investigate the problem of influence points, and the problem of collinearity.
 
  -->
-
+```
 ```{r}
 expensescrime = read.table("expensescrime.txt", header = T)
 pairs(expensescrime[,-1])
