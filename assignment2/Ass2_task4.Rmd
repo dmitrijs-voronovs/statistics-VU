@@ -1,0 +1,120 @@
+---
+title: "Assignment 2 task 4"
+output: html_notebook
+---
+
+
+a)  Perform Poisson regression on the full data set, taking miltcoup as response variable. Comment on your findings.
+
+```{r}
+data <- coups
+
+# fit the Poisson regression model
+model <- glm(miltcoup ~ oligarchy + pollib + parties + pctvote + popn + size + numelec + numregim, data = data, family = "poisson")
+
+# summarize the model
+summary(model)
+
+```
+
+The output of this code will provide us with a summary of the Poisson regression model.
+
+We can observe that the oligarchy variable has a positive coefficient estimate of 0.0731, which means that an increase in the number of years a country has been ruled by a military oligarchy is associated with an increase in the number of successful military coups. This variable is statistically significant at the 0.05 level, as the p-value is 0.0347.
+
+The pollib variable has a negative coefficient estimate of -0.713, which means that an increase in political liberalization is associated with a decrease in the number of successful military coups. This variable is also statistically significant as the p-value is 0.0089.
+
+The parties variable has a positive coefficient estimate of 0.0308, which means that an increase in the number of legal political parties is associated with an increase in the number of successful military coups. This variable is also statistically significant as the p-value is 0.00595.
+
+The other variables do not have a statistically significant effect on the number of successful military coups.
+
+
+b) Use the step-down approach (using output of the function summary) to reduce the number of explanatory variables. Compare the resulting model with your findings in a).
+
+To perform the step-down approach for variable selection, we start with the full model and iteratively remove variables until all remaining variables are significant at the 0.05 level.
+We have the full model in a), we can see that the numelec variable has the biggest p-value, so it can be a decent starting point for the removal. 
+
+```{r}
+# fit the Poisson regression model
+model <- glm(miltcoup ~ oligarchy + pollib + parties + pctvote + popn + size  + numregim, data = data, family = "poisson")
+
+# summarize the model
+summary(model)
+```
+
+Next, we see that the numregim variable is not significant, and remove it.
+
+```{r}
+# fit the Poisson regression model
+model <- glm(miltcoup ~ oligarchy + pollib + parties + pctvote + popn + size, data = data, family = "poisson")
+
+# summarize the model
+summary(model)
+```
+The next candidate for the elimination is size variable. 
+
+```{r}
+# fit the Poisson regression model
+model <- glm(miltcoup ~ oligarchy + pollib + parties + pctvote + popn, data = data, family = "poisson")
+
+# summarize the model
+summary(model)
+```
+
+After removing the popn variable we see the following results.
+
+```{r}
+# fit the Poisson regression model
+model <- glm(miltcoup ~ oligarchy + pollib + parties + pctvote, data = data, family = "poisson")
+
+# summarize the model
+summary(model)
+```
+
+After removing pctvote variable:
+```{r}
+# fit the Poisson regression model
+model <- glm(miltcoup ~ oligarchy + pollib + parties, data = data, family = "poisson")
+
+# summarize the model
+summary(model)
+```
+
+After executing the step-down approach we can see that the variables remain the same, however, their p-values decreased even further. Unlike initial model, in the new one the oligarhy variable has the most significant impact on the miltcoup.
+
+The initial model has a lower residual deviance and AIC compared to the model after the step-down approach, indicating that the initial model fits the data slightly better. However, the model after the step-down approach has a simpler structure with fewer explanatory variables, which can be more desirable in certain situations, such as when interpreting the model and making predictions.
+
+Overall, the step-down approach has reduced the number of explanatory variables and provided a simpler model with comparable findings to the initial model. However, depending on the research question and context, one may choose to use the initial model for its better fit or the simplified model for its simplicity.
+
+c)  Using the model from b), predict the number of coups for a hypothetical country for all the three levels of political liberalization and the (overall) averages of all the other (numerical) characteristics. Comment on your findings.
+
+```{r}
+# set overall averages of all the other numerical characteristics
+newdata <- data.frame(
+  oligarchy = mean(data$oligarchy),
+  pollib = mean(data$pollib),
+  parties = mean(data$parties),
+  pctvote = mean(data$pctvote),
+  popn = mean(data$popn),
+  size = mean(data$size),
+  numelec = mean(data$numelec),
+  numregim = mean(data$numregim)
+)
+
+round(newdata, digits = 0)
+newdata
+
+newdata$pollib <- 0
+predict(model, newdata, type = "response")
+
+newdata$pollib <- 1
+predict(model, newdata, type = "response")
+
+newdata$pollib <- 2
+predict(model, newdata, type = "response")
+
+```
+From the results we can observe that a country with no civil rights for political expression (pollib = 0) is predicted to have the highest number of military coups (3.040149) compared to a country with limited civil rights for expression but right to form political parties (pollib = 2: 1.712241) and a country with full civil rights (pollib = 2: 0.9643509) when other variables are held at their average levels.
+This finding seems intuitive as one might expect more political freedom to result in fewer military coups. As a point of discussion we can mention the fact that the model was fitted using data up until 1989, so it may not be applicable to more recent years.
+
+
+
