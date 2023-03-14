@@ -1,7 +1,284 @@
 ---
-title: "R Notebook"
-output: html_notebook
+title: "Assignment 1"
+author: "Group 69: Dmitrijs Voronovs (2779206), Alina ..."
+date: "24.02.2023"
+output: 
+  pdf_document: 
+    latex_engine: lualatex
+fontsize: 11pt
+highlight: tango
+editor_options: 
+  markdown: 
+    wrap: 72
 ---
+
+## Exercise 1
+
+```{=html}
+<!--# 
+The Amsterdamsche Bos forestry wishes to estimate the total wood volume of the trees on its domain. To this end the forestry has cut a sample of 59 trees of their most prevalent types beech and oak and collected the data from the cut trees in the file treeVolume.txt Download treeVolume.txt. The volume of these trees alongside with their height and trunk diameter have been measured; these are the columns volume, height and diameter, respectively. Column type gives the tree type: Beech or Oak. The tree type, height and diameter can be measured in the field without sacrificing the tree. The forestry hypothesizes that these are predictive of the wood volume.
+ -->
+```
+### a)
+
+```{=html}
+<!--# 
+a)  Investigate whether the tree type influences volume by performing ANOVA, without taking diameter and height into account. Can a t-test be related to the above ANOVA test? Estimate the volumes for the two tree types.
+ -->
+```
+```{r echo = T, results = 'hide'}
+treeVolume = read.table("treeVolume.txt", header = T)
+head(treeVolume)
+```
+
+```{r echo = F, results = 'hide'}
+volumelm = lm(volume ~ factor(type), data = treeVolume)
+anova(volumelm)
+```
+
+Since P value for type is 0.1736, it indicates that we fail to reject
+the null hypothesis and conclude that there is no significant difference
+in mean volume between the beech and oak trees.
+
+```{r}
+par(mfrow=c(1,2))
+qqnorm(residuals(volumelm))
+plot(fitted(volumelm), residuals(volumelm))
+par(mfrow=c(1,1))
+```
+
+After testing the data for normality, it becomes obvious that there is a
+deviation of residuals from the normal distribution. As ANOVA
+assumptions have been violated, p-value may not be reliable.
+
+```{r echo = T, results = 'hide'}
+t.test(volume ~ factor(type), data=treeVolume)
+```
+
+T-test shows the p-value 0.1659, indicating that we do not reject a null
+hypothesis. That indicated the difference in means between volumes of
+beech and oak is different.
+
+T-test also displays estimates of mean for group beech (30.17) and oak
+(35.25)
+
+### b)
+
+```{=html}
+<!--# 
+b)  Now include diameter and height as explanatory variables into the analysis. Investigate whether the influence of diameter on volume is similar for the both tree types. Do the same for the influence of height on volume. (Consider at most one (relevant) pairwise interaction per model.) Comment.
+ -->
+```
+```{r results='hide'}
+volumelm1 = lm(volume ~ height + factor(type) * diameter, data = treeVolume)
+anova(volumelm1)
+```
+
+According to the p-value (0.474) of type and diameter interaction, there
+is no significant difference between the influence of diameter to volume
+for different tree types.
+
+```{r}
+volumelm2 = lm(volume ~ diameter + factor(type) * height, data = treeVolume)
+anova(volumelm2)
+```
+
+Similarly, the p-value (0.176) of type and height interaction tells that
+there is no significant difference between the influence of height to
+volume for different tree types.
+
+### c)
+
+```{=html}
+<!--# 
+
+c)  Using the results from c), investigate how diameter, height and type influence volume. Comment. Using the resulting model, predict the volume for a tree with the (overall) average diameter and height?
+
+ -->
+```
+According the anova results in **b)**, there is no need to include
+interaction terms with tree type.
+
+```{r results='hide'}
+volumeFulllm = lm(volume ~ diameter + height + factor(type), data = treeVolume)
+anova(volumeFulllm)
+```
+
+However, after analyzing the output of anova for the new model, it
+becomes clear that type can also be excluded, as it is not significant
+(p-value = 0.143).
+
+```{r results='hide'}
+volumeFulllm = lm(volume ~ diameter + height, data = treeVolume)
+anova(volumeFulllm)
+```
+
+There is one more opportunity left to improve the final model by testing
+the interaction of diameter and height.
+
+```{r}
+volumeFulllm = lm(volume ~ diameter * height, data = treeVolume)
+anova(volumeFulllm)
+```
+
+And according to the output this time interaction is significant. Thus
+let us test the anova assumptions.
+
+```{r}
+par(mfrow=c(1,2))
+qqnorm(residuals(volumeFulllm))
+qqline(residuals(volumeFulllm))
+plot(fitted(volumelm), residuals(volumelm))
+par(mfrow=c(1,1))
+
+```
+
+Residuals seem to follow normal distribution, while spread in the
+residuals seems to be bigger for smaller fitted values, also some points
+are extreme.
+
+Now we can predict the volume of overall average diameter and height
+tree which is
+
+```{r}
+d = mean(treeVolume$diameter)
+h = mean(treeVolume$height)
+avgTree = data.frame(diameter=d, height=h, type="oak")
+
+unname(predict(volumeFulllm, avgTree))
+
+```
+
+### d)
+
+```{=html}
+<!--# 
+
+d)  Propose a transformation of the explanatory variables that possibly yields a better model (verify this).  (Hint: think of a natural link between the response and explanatory variables.)
+
+ -->
+```
+For the natural transformation of data, let us use the formula of
+cylinder volume $V = \pi*r^2*h$
+
+```{r}
+perfectVolume = pi * (treeVolume$diameter / 2)**2 * treeVolume$height
+volumePerfectlm = lm(treeVolume$volume ~ perfectVolume)
+anova(volumePerfectlm)
+```
+
+One way to compare model effectiveness is to compare residual standard
+error.
+
+```{r results='hide'}
+summary(volumeFulllm)
+summary(volumePerfectlm)
+```
+
+Residual standard error for previous model is **2.788**, while for the
+more natural one is **2.284**, which indicates that it is performing
+better.
+
+## Exercise 2
+
+```{=html}
+<!--# 
+
+The data in expensescrime.txt Download expensescrime.txt were obtained to determine factors related to state expenditures on criminal activities (courts, police, etc.) The variables are: state (indicating the state in the USA), expend (state expenditures on criminal activities in $1000), bad (crime rate per 100000), crime (number of persons under criminal supervision), lawyers (number of lawyers in the state), employ (number of persons employed in the state) and pop (population of the state in 1000). In the regression analysis, take expend as response variable and bad, crime, lawyers, employ and pop as explanatory variables.
+
+ -->
+```
+### a)
+
+```{=html}
+<!--# 
+
+a)  Make some graphical summaries of the data. Investigate the problem of influence points, and the problem of collinearity.
+
+ -->
+```
+```{r}
+expensescrime = read.table("expensescrime.txt", header = T)
+pairs(expensescrime[,-1])
+```
+
+Influence points:
+
+many paired scatter plots (i.e. expend vs bad, lawyers vs employ) have
+most of the data skewed to one side and some strong outliers on the
+other side.
+
+```{r}
+par(mfrow=c(1,2))
+plot(expend ~ bad, data=expensescrime)
+plot(lawyers ~ employ, data=expensescrime)
+par(mfrow=c(1,1))
+```
+
+Collinearity:
+
+Multiple variables are clearly collinear: bad & employ
+(`cor(expensescrime$bad, expensescrime$employ)` is 0.871), bad & lawyers
+(0.832), bad & pop (0.92), lawyers & employ (0.966), lawyers & pop
+(0.934)
+
+<!--# TODO: add some more plots??? -->
+
+### b)
+
+<!--# b)  Fit a linear regression model to the data. Use the step-up method to find the best model. Comment. -->
+
+```{r}
+summary(lm(expend ~ bad, data=expensescrime))$r.squared
+summary(lm(expend ~ crime, data=expensescrime))$r.squared
+summary(lm(expend ~ lawyers, data=expensescrime))$r.squared
+summary(lm(expend ~ employ, data=expensescrime))$r.squared
+summary(lm(expend ~ pop, data=expensescrime))$r.squared
+
+
+```
+
+The first variable to add is **employ**, as it is significant and yields
+the best multiple R-squared value **0.9539745**
+
+```{r}
+summary(lm(expend ~ employ + bad, data=expensescrime))$r.squared
+summary(lm(expend ~ employ + crime, data=expensescrime))$r.squared
+summary(lm(expend ~ employ + lawyers, data=expensescrime))$r.squared
+summary(lm(expend ~ employ + pop, data=expensescrime))$r.squared
+```
+
+Next one to add is **lawyers** with the R-squared value **0.9631745**
+
+```{r}
+summary(lm(expend ~ employ + lawyers + bad, data=expensescrime))$r.squared
+summary(lm(expend ~ employ + lawyers + crime, data=expensescrime))$r.squared
+summary(lm(expend ~ employ + lawyers + pop, data=expensescrime))$r.squared
+```
+
+Other variables upon testing showed no significance, therefore the final
+model is
+
+```{r}
+model = lm(expend ~ employ + lawyers, data=expensescrime)
+```
+
+### c)
+
+<!--# c)  Determine a 95% prediction interval for the expend using the model you preferred in b) for a (hypothetical) state with bad=50, crime=5000, lawyers=5000, employ=5000 and pop=5000. Can you improve this interval? -->
+
+```{r}
+newData = data.frame(bad=50, crime=5000, lawyers=5000, employ=5000, pop=5000)
+predict(model, newData, interval = 'prediction')
+```
+
+In order to improve the interval we should revise the expend column. As
+per definition, expend - state expenditures on criminal activities in
+\$1000. Consequently, expend should always be **\>0**, thus the new
+interval is **[0, 647.3504]**
+
+### d)
+
 
 ## Exercise 3
 
@@ -124,3 +401,27 @@ test <- subset(titanic, split==FALSE)
 ### d)
 
 ### e)
+
+## Exercise 4
+
+### a)
+
+<!--# a)  Perform Poisson regression on the full data set, taking miltcoup as response variable. Comment on your findings. -->
+
+```{r}
+coups = read.table("coups.txt", header = T)
+```
+
+```{r results='hide'}
+model <- glm(miltcoup ~ ., data = coups, family = "poisson")
+summary(model)
+```
+
+According to the summary, pctvote, popn, size, numelec and nunregim are
+not significant for the model.
+
+<!--# TODO: add something else?? -->
+
+### b)
+
+### c)
