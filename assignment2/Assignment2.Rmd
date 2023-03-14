@@ -222,7 +222,27 @@ Multiple variables are clearly collinear: bad & employ
 (0.832), bad & pop (0.92), lawyers & employ (0.966), lawyers & pop
 (0.934)
 
-<!--# TODO: add some more plots??? -->
+```{r}
+library(ggplot2)
+
+# number of lawyers per state
+ggplot(expensescrime, aes(x = state, y = lawyers)) +
+  geom_point() +
+  labs(x = "State", y = "Number of Lawyers") 
+
+#expenses per state
+ggplot(expensescrime, aes(x = state, y = expend)) +
+  geom_point() +
+  labs(x = "State", y = "Expenses") 
+
+#check what states are outliers in terms of expenses and lawyers 
+ggplot(expensescrime, aes(x = lawyers, y = expend, label = state)) +
+  geom_point() +
+  geom_text(vjust = 1, hjust = 1) +
+  labs(x = "Number of Lawyers", y = "Expenditures on Criminal Activities ($1000)") +
+  theme_bw()
+
+```
 
 ### b)
 
