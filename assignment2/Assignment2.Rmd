@@ -518,5 +518,3 @@ From the results we can observe that a country with no civil rights for politica
 This finding seems intuitive as one might expect more political freedom to result in fewer military coups. As a point of discussion we can mention the fact that the model was fitted using data up until 1989, so it may not be applicable to more recent years.
 
 
-
-### c)
