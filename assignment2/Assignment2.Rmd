@@ -509,7 +509,27 @@ likely to survive.
 
 ### e)
 
-<!--# Is the second approach in d) wrong? Name both an advantage and a disadvantage of the two approaches, relative to each other. -->
+Theoretically it is possible to use a contingency table test as the variables are  categorical and independent, sample size is big enough and categories are exclusive.
+However, the Chi-square test is only meant to test the probability of independence of a distribution of data. It will not tell you any details about the relationship between them. For example, if we need to calculate how much more likely it is that a woman will survive than a man, the Chi-square test is not very useful. 
+Although, once you have determined the probability that the two variables are related (using the Chi-square test), it is possible ti use other methods to explore their interaction in more detail, like odds ratio.
+
+Advantages of Contingency Table Tests:
+- Easy to understand and interpret
+- Can be used to examine the association between two or more categorical variables.
+- Do not make assumptions about the distribution of the data.
+
+Disadvantages:
+- Do not take into account the influence of other variables on the relationship between the two variables of interest.
+
+Advantages of Logistic Regression:
+- Allow for the examination of the relationship between two or more variables while controlling for the effects of other variables.
+- Provide a measure of the strength and direction of the relationship between the variables.
+
+Disadvantages:
+- Require a larger sample size than contingency table tests to achieve sufficient power.
+
+If the research question involves examining the association between two categorical variables only, then a contingency table test may be more appropriate. However, if the research question involves examining the relationship between multiple variables while controlling for other factors, then logistic regression may be a better choice.
+
 
 ## Exercise 4
 
