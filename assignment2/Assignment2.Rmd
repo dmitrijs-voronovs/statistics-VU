@@ -40,7 +40,7 @@ Since P value for type is 0.1736, it indicates that we fail to reject
 the null hypothesis and conclude that there is no significant difference
 in mean volume between the beech and oak trees.
 
-```{r}
+```{r out.height="250px"}
 par(mfrow=c(1,2))
 qqnorm(residuals(volumelm))
 plot(fitted(volumelm), residuals(volumelm))
@@ -78,7 +78,7 @@ According to the p-value (0.474) of type and diameter interaction, there
 is no significant difference between the influence of diameter to volume
 for different tree types.
 
-```{r}
+```{r results='hide'}
 volumelm2 = lm(volume ~ diameter + factor(type) * height, data = treeVolume)
 anova(volumelm2)
 ```
@@ -116,7 +116,7 @@ anova(volumeFulllm)
 There is one more opportunity left to improve the final model by testing
 the interaction of diameter and height.
 
-```{r}
+```{r results='hide'}
 volumeFulllm = lm(volume ~ diameter * height, data = treeVolume)
 anova(volumeFulllm)
 ```
@@ -124,7 +124,7 @@ anova(volumeFulllm)
 And according to the output this time interaction is significant. Thus
 let us test the anova assumptions.
 
-```{r}
+```{r out.height="250px"}
 par(mfrow=c(1,2))
 qqnorm(residuals(volumeFulllm))
 qqline(residuals(volumeFulllm))
@@ -161,7 +161,7 @@ d)  Propose a transformation of the explanatory variables that possibly yields 
 For the natural transformation of data, let us use the formula of
 cylinder volume $V = \pi*r^2*h$
 
-```{r}
+```{r results='hide'}
 perfectVolume = pi * (treeVolume$diameter / 2)**2 * treeVolume$height
 volumePerfectlm = lm(treeVolume$volume ~ perfectVolume)
 anova(volumePerfectlm)
@@ -197,7 +197,7 @@ a)  Make some graphical summaries of the data. Investigate the problem of influ
 
  -->
 ```
-```{r}
+```{r out.width="400px"}
 expensescrime = read.table("expensescrime.txt", header = T)
 pairs(expensescrime[,-1])
 ```
@@ -208,7 +208,7 @@ many paired scatter plots (i.e. expend vs bad, lawyers vs employ) have
 most of the data skewed to one side and some strong outliers on the
 other side.
 
-```{r}
+```{r out.height="300px"}
 par(mfrow=c(1,2))
 plot(expend ~ bad, data=expensescrime)
 plot(lawyers ~ employ, data=expensescrime)
@@ -222,7 +222,7 @@ Multiple variables are clearly collinear: bad & employ
 (0.832), bad & pop (0.92), lawyers & employ (0.966), lawyers & pop
 (0.934)
 
-```{r}
+```{r out.height="300px"}
 library(ggplot2)
 
 # number of lawyers per state
@@ -248,7 +248,7 @@ ggplot(expensescrime, aes(x = lawyers, y = expend, label = state)) +
 
 <!--# b)  Fit a linear regression model to the data. Use the step-up method to find the best model. Comment. -->
 
-```{r}
+```{r results='hide'}
 summary(lm(expend ~ bad, data=expensescrime))$r.squared
 summary(lm(expend ~ crime, data=expensescrime))$r.squared
 summary(lm(expend ~ lawyers, data=expensescrime))$r.squared
@@ -261,7 +261,7 @@ summary(lm(expend ~ pop, data=expensescrime))$r.squared
 The first variable to add is **employ**, as it is significant and yields
 the best multiple R-squared value **0.9539745**
 
-```{r}
+```{r results='hide'}
 summary(lm(expend ~ employ + bad, data=expensescrime))$r.squared
 summary(lm(expend ~ employ + crime, data=expensescrime))$r.squared
 summary(lm(expend ~ employ + lawyers, data=expensescrime))$r.squared
@@ -270,7 +270,7 @@ summary(lm(expend ~ employ + pop, data=expensescrime))$r.squared
 
 Next one to add is **lawyers** with the R-squared value **0.9631745**
 
-```{r}
+```{r results='hide'}
 summary(lm(expend ~ employ + lawyers + bad, data=expensescrime))$r.squared
 summary(lm(expend ~ employ + lawyers + crime, data=expensescrime))$r.squared
 summary(lm(expend ~ employ + lawyers + pop, data=expensescrime))$r.squared
@@ -316,12 +316,12 @@ x.test=x[-train,]; y.test = y[-train]
 
 Apply LASSO
 
-```{r}
+```{r out.height="300px"}
 library(glmnet)
 lasso.model=glmnet(x.train, y.train, alpha=1)
 lasso.cv=cv.glmnet(x.train, y.train, alpha=1, type.measure="mse", nfolds=5)
 
-plot(lasso.model, label=T, xvar="lambda")
+#plot(lasso.model, label=T, xvar="lambda")
 plot(lasso.cv)
 plot(lasso.cv$glmnet.fit, xvar="lambda", label=T)
 
@@ -351,14 +351,14 @@ multiple times we observed that the Lasso method was worse
 
 <!--# a)  Study the data and give a few (>1) summaries (graphics or tables). Fit a logistic regression model (no interactions yet) to investigate the association between the survival status and the predictors PClass, Age and Sex. Interpret the results in terms of odds, comment. -->
 
-```{r}
+```{r out.height="250px"}
 titanic = read.table("titanic.txt", header = T)
 titanic$Sex <- factor(titanic$Sex)
 titanic$PClass <- factor(titanic$PClass)
 titanic$Survived <- factor(titanic$Survived, levels=c(1,0), labels=c("Yes", "No"))
 ```
 
-```{r}
+```{r out.height="250px"}
 survived = titanic$Survived
 plot(survived ~ factor(titanic$PClass), main='Ratio of survivors per class', xlab='Passenger class', ylab='survived')
 ```
@@ -366,19 +366,19 @@ plot(survived ~ factor(titanic$PClass), main='Ratio of survivors per class', xla
 The graph shows that the higher the passenger class, the bigger
 percentage or survivors.
 
-```{r}
+```{r out.height="250px"}
 plot(survived, factor(titanic$PClass), main='Ration of survivors per class', ylab='Passenger class', xlab='survived')
 ```
 
 Also the higher the passenger class, the more survivors.
 
-```{r}
+```{r out.height="250px"}
 plot(factor(titanic$Sex), survived, main='Ratio of survivors per sex', xlab='sex', ylab='survived')
 ```
 
 And that in total there are more female survivors then male survivors.
 
-```{r}
+```{r out.height="300px"}
 par(mfrow=c(1,2))
 hist(titanic$Age, breaks = seq(0, 80, 5), main='Age of all', xlab='Age')
 plot(survived ~ titanic$Age, main='Ratio of survival per Age', xlab='age', ylab='survived')
@@ -431,7 +431,7 @@ younger passengers.
 
 <!--# Investigate the interaction of predictor Age with PClass, and the interaction of Age with Sex. From this and a), choose (and justify) a resulting model. For this model, report the estimate for the probability of survival for each combination of levels of the factors PClass and Sex for a person of age 55.-->
 
-```{r}
+```{r results='hide'}
 model <- glm(Survived ~ PClass + Age + Sex + Age:PClass + Age:Sex, data=titanic, family=binomial(link="logit"))
 summary(model)
 ```
@@ -509,27 +509,39 @@ likely to survive.
 
 ### e)
 
-Theoretically it is possible to use a contingency table test as the variables are  categorical and independent, sample size is big enough and categories are exclusive.
-However, the Chi-square test is only meant to test the probability of independence of a distribution of data. It will not tell you any details about the relationship between them. For example, if we need to calculate how much more likely it is that a woman will survive than a man, the Chi-square test is not very useful. 
-Although, once you have determined the probability that the two variables are related (using the Chi-square test), it is possible ti use other methods to explore their interaction in more detail, like odds ratio.
+Theoretically it is possible to use a contingency table test as the
+variables are categorical and independent, sample size is big enough and
+categories are exclusive. However, the Chi-square test is only meant to
+test the probability of independence of a distribution of data. It will
+not tell you any details about the relationship between them. For
+example, if we need to calculate how much more likely it is that a woman
+will survive than a man, the Chi-square test is not very useful.
+Although, once you have determined the probability that the two
+variables are related (using the Chi-square test), it is possible ti use
+other methods to explore their interaction in more detail, like odds
+ratio.
 
-Advantages of Contingency Table Tests:
-- Easy to understand and interpret
-- Can be used to examine the association between two or more categorical variables.
-- Do not make assumptions about the distribution of the data.
+Advantages of Contingency Table Tests: - Easy to understand and
+interpret - Can be used to examine the association between two or more
+categorical variables. - Do not make assumptions about the distribution
+of the data.
 
-Disadvantages:
-- Do not take into account the influence of other variables on the relationship between the two variables of interest.
+Disadvantages: - Do not take into account the influence of other
+variables on the relationship between the two variables of interest.
 
-Advantages of Logistic Regression:
-- Allow for the examination of the relationship between two or more variables while controlling for the effects of other variables.
-- Provide a measure of the strength and direction of the relationship between the variables.
+Advantages of Logistic Regression: - Allow for the examination of the
+relationship between two or more variables while controlling for the
+effects of other variables. - Provide a measure of the strength and
+direction of the relationship between the variables.
 
-Disadvantages:
-- Require a larger sample size than contingency table tests to achieve sufficient power.
+Disadvantages: - Require a larger sample size than contingency table
+tests to achieve sufficient power.
 
-If the research question involves examining the association between two categorical variables only, then a contingency table test may be more appropriate. However, if the research question involves examining the relationship between multiple variables while controlling for other factors, then logistic regression may be a better choice.
-
+If the research question involves examining the association between two
+categorical variables only, then a contingency table test may be more
+appropriate. However, if the research question involves examining the
+relationship between multiple variables while controlling for other
+factors, then logistic regression may be a better choice.
 
 ## Exercise 4
 
@@ -537,7 +549,7 @@ If the research question involves examining the association between two categori
 
 <!--# Perform Poisson regression on the full data set, taking miltcoup as response variable. Comment on your findings. -->
 
-```{r}
+```{r results='hide'}
 coups = read.table("coups.txt", header = T)
 data <- coups
 
@@ -572,7 +584,7 @@ This variable is also statistically significant as the p-value is
 The other variables do not have a statistically significant effect on
 the number of successful military coups.
 
-### b) 
+### b)
 
 <!--# Use the step-down approach (using output of the function summary) to reduce the number of explanatory variables. Compare the resulting model with your findings in a). -->
 
@@ -582,7 +594,7 @@ variables are significant at the 0.05 level. We have the full model in
 a), we can see that the numelec variable has the biggest p-value, so it
 can be a decent starting point for the removal.
 
-```{r}
+```{r results='hide'}
 # fit the Poisson regression model
 model <- glm(miltcoup ~ oligarchy + pollib + parties + pctvote + popn + size  + numregim, data = data, family = "poisson")
 
@@ -593,7 +605,7 @@ summary(model)
 Next, we see that the numregim variable is not significant, and remove
 it.
 
-```{r}
+```{r results='hide'}
 # fit the Poisson regression model
 model <- glm(miltcoup ~ oligarchy + pollib + parties + pctvote + popn + size, data = data, family = "poisson")
 
@@ -603,7 +615,7 @@ summary(model)
 
 The next candidate for the elimination is size variable.
 
-```{r}
+```{r results='hide'}
 # fit the Poisson regression model
 model <- glm(miltcoup ~ oligarchy + pollib + parties + pctvote + popn, data = data, family = "poisson")
 
@@ -613,7 +625,7 @@ summary(model)
 
 After removing the popn variable we see the following results.
 
-```{r}
+```{r results='hide'}
 # fit the Poisson regression model
 model <- glm(miltcoup ~ oligarchy + pollib + parties + pctvote, data = data, family = "poisson")
 
@@ -623,7 +635,7 @@ summary(model)
 
 After removing pctvote variable:
 
-```{r}
+```{r results='hide'}
 # fit the Poisson regression model
 model <- glm(miltcoup ~ oligarchy + pollib + parties, data = data, family = "poisson")
 
