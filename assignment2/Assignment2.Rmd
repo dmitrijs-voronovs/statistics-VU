@@ -353,10 +353,13 @@ multiple times we observed that the Lasso method was worse
 
 ```{r}
 titanic = read.table("titanic.txt", header = T)
+titanic$Sex <- factor(titanic$Sex)
+titanic$PClass <- factor(titanic$PClass)
+titanic$Survived <- factor(titanic$Survived, levels=c(1,0), labels=c("Yes", "No"))
 ```
 
 ```{r}
-survived = factor(titanic$Survived, c('0', '1'), c('no', 'yes'))
+survived = titanic$Survived
 plot(survived ~ factor(titanic$PClass), main='Ratio of survivors per class', xlab='Passenger class', ylab='survived')
 ```
 
@@ -385,13 +388,11 @@ par(mfrow=c(1,1))
 The most people were between the ages of 15 and 30, but the age group
 under 5 has the highest survival rate.
 
-```{r}
+```{r results='hide'}
+titanic = read.table("titanic.txt", header = T)
 titanic$Sex <- factor(titanic$Sex, levels=c("male", "female"), labels=c(1, 0))
 titanic$PClass <- factor(titanic$PClass,levels=c("1st", "2nd", "3rd"), labels=c(1, 2, 3))
 titanic$Survived <- factor(titanic$Survived)
-titanic
-
-
 model <- glm(Survived ~ PClass + Age + Sex, data=titanic, family=binomial(link="logit"))
 summary(model)
 ```
@@ -476,24 +477,35 @@ evaluate the model's performance. This process is repeated until we find
 the best-performing model, which we can use to predict the survival
 status of new passengers based on their characteristics.
 
-Predict the survival status:
-
-```{r}
-# split the dataset into training and testing sets
-library(caTools)
-set.seed(42)
-split <- sample.split(titanic$Survived, SplitRatio=0.8)
-train <- subset(titanic, split==TRUE)
-test <- subset(titanic, split==FALSE)
-```
-
 ### d)
 
 <!--# Another approach would be to apply a contingency table test and to investigate whether factor passenger class has an effect on the survival status and whether factor gender has an effect on the survival status. Implement the relevant test(s). -->
 
 ```{r}
+titanic = read.table("titanic.txt", header = T)
+PClass = factor(titanic$PClass)
+Survived = factor(titanic$Survived)
+t = table(PClass, Survived); t
 
+z = chisq.test(t); z
+residuals(z)
 ```
+
+The p-value tells that there is a significant association between the
+passenger class and the survival status. According to the table,
+first-class passengers are the most likely to survive, while third-class
+passengers are the least likely to survive.
+
+```{r}
+Sex = factor(titanic$Sex);
+t = table(Sex, Survived); t
+z = chisq.test(t); z
+residuals(z)
+```
+
+The p-value tells that there is a significant effect of gender factor on
+the survival status. According to the table, female are relatively more
+likely to survive.
 
 ### e)
 
