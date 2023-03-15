@@ -518,6 +518,7 @@ likely to survive.
 <!--# Perform Poisson regression on the full data set, taking miltcoup as response variable. Comment on your findings. -->
 
 ```{r}
+coups = read.table("coups.txt", header = T)
 data <- coups
 
 # fit the Poisson regression model
