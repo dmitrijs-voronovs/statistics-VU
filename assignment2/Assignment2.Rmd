@@ -1,6 +1,6 @@
 ---
 title: "Assignment 1"
-author: "Group 69: Dmitrijs Voronovs (2779206), Alina ..."
+author: "Group 69: Dmitrijs Voronovs (2779206), Alina Boshchenko 2732782"
 date: "24.02.2023"
 output: 
   pdf_document: 
@@ -299,6 +299,51 @@ interval is **[0, 647.3504]**
 
 ### d)
 
+<!--# Apply the LASSO method to choose the relevant variables (with default parameters as in the lecture and lambda=lambda.1se). (You will need to install the R-package glmnet, which is not included in the standard distribution of R.) Compare the resulting model with the model obtained in b). (Beware that in general a new run delivers a new model because of a new train set.) -->
+
+Remove state column, split data into response and predictor data,
+prepare training and test data.
+
+```{r}
+# columns 1 (state), 2 (expend)
+x=as.matrix(expensescrime[,-1:-2])
+y=expensescrime[,2]
+
+train=sample(1:nrow(x),2/3*nrow(x))
+x.train=x[train,]; y.train=y[train]
+x.test=x[-train,]; y.test = y[-train]
+```
+
+Apply LASSO
+
+```{r}
+library(glmnet)
+lasso.model=glmnet(x.train, y.train, alpha=1)
+lasso.cv=cv.glmnet(x.train, y.train, alpha=1, type.measure="mse", nfolds=5)
+
+plot(lasso.model, label=T, xvar="lambda")
+plot(lasso.cv)
+plot(lasso.cv$glmnet.fit, xvar="lambda", label=T)
+
+lambda.1se=lasso.cv$lambda.1se;
+coef(lasso.model,s=lasso.cv$lambda.1se)
+lasso.pred=predict(lasso.model,s=lambda.1se,newx=as.matrix(x.test))
+```
+
+Most of the time lasso selects only lawyers, employ and pop as
+predictors.
+
+```{r}
+mse.lasso=mean((y.test-lasso.pred)^2); mse.lasso
+
+lm.model=lm(expend ~ employ + lawyers, data=expensescrime, subset=train)
+y.predict.lm=predict(lm.model,newdata=expensescrime[-train,])
+mse.lm=mean((y.test-y.predict.lm)^2); mse.lm
+```
+
+As results are highly dependent on the data sample, one can not claim
+that one model is better than the other, however by running tests
+multiple times we observed that the Lasso method was worse
 
 ## Exercise 3
 
@@ -341,7 +386,6 @@ The most people were between the ages of 15 and 30, but the age group
 under 5 has the highest survival rate.
 
 ```{r}
-titanic = read.table("titanic.txt", header = T)
 titanic$Sex <- factor(titanic$Sex, levels=c("male", "female"), labels=c(1, 0))
 titanic$PClass <- factor(titanic$PClass,levels=c("1st", "2nd", "3rd"), labels=c(1, 2, 3))
 titanic$Survived <- factor(titanic$Survived)
@@ -357,25 +401,52 @@ odds_ratio <- exp(coef(model))
 odds_ratio <- data.frame(feature=names(odds_ratio), odds_ratio=odds_ratio)
 odds_ratio
 ```
-The odds ratios for PClass2 and PClass3 are calculated based on the reference category of PClass1. 
-The odds ratio for PClass2 of 0.275 means that the odds of survival for a passenger in second class are 0.275 times the odds of survival for a passenger in the reference category of PClass1. This suggests that passengers in second class were less likely to survive than passengers in first class, holding the other variables constant.
-Similarly, the odds ratio for PClass3 of 0.080 means that the odds of survival for a passenger in third class are 0.080 times the odds of survival for a passenger in the reference category of PClass1 (first class), holding the other variables constant.
-The odds ratio for Age is 0.965, which means that for each one-year increase in age, the odds of survival decrease by a factor of about 0.965, holding the other variables constant.
-The odds ratio for Sex0 is 13.8926071, which means that the odds of survival for a female passenger are about 13.8926071 times the odds of survival for a male passenger, holding the other variables constant. This suggests that female passengers were more likely to survive than male passengers.
 
-Overall, the results suggest that female passengers and those in higher classes (i.e. first and second class) were more likely to survive than male passengers and those in third class. Age was also a significant predictor, with older passengers being less likely to survive than younger passengers.
+The odds ratios for PClass2 and PClass3 are calculated based on the
+reference category of PClass1. The odds ratio for PClass2 of 0.275 means
+that the odds of survival for a passenger in second class are 0.275
+times the odds of survival for a passenger in the reference category of
+PClass1. This suggests that passengers in second class were less likely
+to survive than passengers in first class, holding the other variables
+constant. Similarly, the odds ratio for PClass3 of 0.080 means that the
+odds of survival for a passenger in third class are 0.080 times the odds
+of survival for a passenger in the reference category of PClass1 (first
+class), holding the other variables constant. The odds ratio for Age is
+0.965, which means that for each one-year increase in age, the odds of
+survival decrease by a factor of about 0.965, holding the other
+variables constant. The odds ratio for Sex0 is 13.8926071, which means
+that the odds of survival for a female passenger are about 13.8926071
+times the odds of survival for a male passenger, holding the other
+variables constant. This suggests that female passengers were more
+likely to survive than male passengers.
+
+Overall, the results suggest that female passengers and those in higher
+classes (i.e. first and second class) were more likely to survive than
+male passengers and those in third class. Age was also a significant
+predictor, with older passengers being less likely to survive than
+younger passengers.
 
 ### b)
-<!--#Investigate the interaction of predictor Age with PClass, and the interaction of Age with Sex. From this and a), choose (and justify) a resulting model. For this model, report the estimate for the probability of survival for each combination of levels of the factors PClass and Sex for a person of age 55.-->
+
+<!--# Investigate the interaction of predictor Age with PClass, and the interaction of Age with Sex. From this and a), choose (and justify) a resulting model. For this model, report the estimate for the probability of survival for each combination of levels of the factors PClass and Sex for a person of age 55.-->
 
 ```{r}
 model <- glm(Survived ~ PClass + Age + Sex + Age:PClass + Age:Sex, data=titanic, family=binomial(link="logit"))
 summary(model)
 ```
-To choose the resulting model, we need to evaluate the statistical significance of the interaction terms. If they are not significant, we can stick with the original model without the interaction terms.
-In the summary output, the p-values for the interaction terms PClass2:Age and Age:Sex0 are 0.04012 and 1.52e-06, respectively. Both of these p-values are less than 0.05, which suggests that the interactions are significant. Therefore, it is appropriate to include the interaction terms in the model.
 
-Once we have our final model, we can use it to estimate the probability of survival for each combination of levels of the factors PClass and Sex for a person of age 55. 
+To choose the resulting model, we need to evaluate the statistical
+significance of the interaction terms. If they are not significant, we
+can stick with the original model without the interaction terms. In the
+summary output, the p-values for the interaction terms PClass2:Age and
+Age:Sex0 are 0.04012 and 1.52e-06, respectively. Both of these p-values
+are less than 0.05, which suggests that the interactions are
+significant. Therefore, it is appropriate to include the interaction
+terms in the model.
+
+Once we have our final model, we can use it to estimate the probability
+of survival for each combination of levels of the factors PClass and Sex
+for a person of age 55.
 
 ```{r}
 newdata <- expand.grid(PClass=levels(titanic$PClass), Sex=levels(titanic$Sex))
@@ -386,8 +457,10 @@ newdata$SurvivalProb <- predict(model, newdata, type="response")
 
 newdata
 ```
-As we can see, indeed the highest probability of the survival denotes to the female passenger of the 1st class, while the lowest - to male passenger of the 3rd class.
 
+As we can see, indeed the highest probability of the survival denotes to
+the female passenger of the 1st class, while the lowest - to male
+passenger of the 3rd class.
 
 ### c)
 
@@ -403,7 +476,6 @@ evaluate the model's performance. This process is repeated until we find
 the best-performing model, which we can use to predict the survival
 status of new passengers based on their characteristics.
 
-
 Predict the survival status:
 
 ```{r}
@@ -414,18 +486,24 @@ split <- sample.split(titanic$Survived, SplitRatio=0.8)
 train <- subset(titanic, split==TRUE)
 test <- subset(titanic, split==FALSE)
 ```
-<!--# TODO !!!! -->
-
-
 
 ### d)
 
+<!--# Another approach would be to apply a contingency table test and to investigate whether factor passenger class has an effect on the survival status and whether factor gender has an effect on the survival status. Implement the relevant test(s). -->
+
+```{r}
+
+```
+
 ### e)
+
+<!--# Is the second approach in d) wrong? Name both an advantage and a disadvantage of the two approaches, relative to each other. -->
 
 ## Exercise 4
 
+### a)
 
-a)  Perform Poisson regression on the full data set, taking miltcoup as response variable. Comment on your findings.
+<!--# Perform Poisson regression on the full data set, taking miltcoup as response variable. Comment on your findings. -->
 
 ```{r}
 data <- coups
@@ -438,21 +516,38 @@ summary(model)
 
 ```
 
-The output of this code will provide us with a summary of the Poisson regression model.
+The output of this code will provide us with a summary of the Poisson
+regression model.
 
-We can observe that the oligarchy variable has a positive coefficient estimate of 0.0731, which means that an increase in the number of years a country has been ruled by a military oligarchy is associated with an increase in the number of successful military coups. This variable is statistically significant at the 0.05 level, as the p-value is 0.0347.
+We can observe that the oligarchy variable has a positive coefficient
+estimate of 0.0731, which means that an increase in the number of years
+a country has been ruled by a military oligarchy is associated with an
+increase in the number of successful military coups. This variable is
+statistically significant at the 0.05 level, as the p-value is 0.0347.
 
-The pollib variable has a negative coefficient estimate of -0.713, which means that an increase in political liberalization is associated with a decrease in the number of successful military coups. This variable is also statistically significant as the p-value is 0.0089.
+The pollib variable has a negative coefficient estimate of -0.713, which
+means that an increase in political liberalization is associated with a
+decrease in the number of successful military coups. This variable is
+also statistically significant as the p-value is 0.0089.
 
-The parties variable has a positive coefficient estimate of 0.0308, which means that an increase in the number of legal political parties is associated with an increase in the number of successful military coups. This variable is also statistically significant as the p-value is 0.00595.
+The parties variable has a positive coefficient estimate of 0.0308,
+which means that an increase in the number of legal political parties is
+associated with an increase in the number of successful military coups.
+This variable is also statistically significant as the p-value is
+0.00595.
 
-The other variables do not have a statistically significant effect on the number of successful military coups.
+The other variables do not have a statistically significant effect on
+the number of successful military coups.
 
+### b) 
 
-b) Use the step-down approach (using output of the function summary) to reduce the number of explanatory variables. Compare the resulting model with your findings in a).
+<!--# Use the step-down approach (using output of the function summary) to reduce the number of explanatory variables. Compare the resulting model with your findings in a). -->
 
-To perform the step-down approach for variable selection, we start with the full model and iteratively remove variables until all remaining variables are significant at the 0.05 level.
-We have the full model in a), we can see that the numelec variable has the biggest p-value, so it can be a decent starting point for the removal. 
+To perform the step-down approach for variable selection, we start with
+the full model and iteratively remove variables until all remaining
+variables are significant at the 0.05 level. We have the full model in
+a), we can see that the numelec variable has the biggest p-value, so it
+can be a decent starting point for the removal.
 
 ```{r}
 # fit the Poisson regression model
@@ -462,7 +557,8 @@ model <- glm(miltcoup ~ oligarchy + pollib + parties + pctvote + popn + size  + 
 summary(model)
 ```
 
-Next, we see that the numregim variable is not significant, and remove it.
+Next, we see that the numregim variable is not significant, and remove
+it.
 
 ```{r}
 # fit the Poisson regression model
@@ -471,7 +567,8 @@ model <- glm(miltcoup ~ oligarchy + pollib + parties + pctvote + popn + size, da
 # summarize the model
 summary(model)
 ```
-The next candidate for the elimination is size variable. 
+
+The next candidate for the elimination is size variable.
 
 ```{r}
 # fit the Poisson regression model
@@ -492,6 +589,7 @@ summary(model)
 ```
 
 After removing pctvote variable:
+
 ```{r}
 # fit the Poisson regression model
 model <- glm(miltcoup ~ oligarchy + pollib + parties, data = data, family = "poisson")
@@ -500,13 +598,27 @@ model <- glm(miltcoup ~ oligarchy + pollib + parties, data = data, family = "poi
 summary(model)
 ```
 
-After executing the step-down approach we can see that the variables remain the same, however, their p-values decreased even further. Unlike initial model, in the new one the oligarhy variable has the most significant impact on the miltcoup.
+After executing the step-down approach we can see that the variables
+remain the same, however, their p-values decreased even further. Unlike
+initial model, in the new one the oligarhy variable has the most
+significant impact on the miltcoup.
 
-The initial model has a lower residual deviance and AIC compared to the model after the step-down approach, indicating that the initial model fits the data slightly better. However, the model after the step-down approach has a simpler structure with fewer explanatory variables, which can be more desirable in certain situations, such as when interpreting the model and making predictions.
+The initial model has a lower residual deviance and AIC compared to the
+model after the step-down approach, indicating that the initial model
+fits the data slightly better. However, the model after the step-down
+approach has a simpler structure with fewer explanatory variables, which
+can be more desirable in certain situations, such as when interpreting
+the model and making predictions.
 
-Overall, the step-down approach has reduced the number of explanatory variables and provided a simpler model with comparable findings to the initial model. However, depending on the research question and context, one may choose to use the initial model for its better fit or the simplified model for its simplicity.
+Overall, the step-down approach has reduced the number of explanatory
+variables and provided a simpler model with comparable findings to the
+initial model. However, depending on the research question and context,
+one may choose to use the initial model for its better fit or the
+simplified model for its simplicity.
 
-c)  Using the model from b), predict the number of coups for a hypothetical country for all the three levels of political liberalization and the (overall) averages of all the other (numerical) characteristics. Comment on your findings.
+### c)
+
+<!--# Using the model from b), predict the number of coups for a hypothetical country for all the three levels of political liberalization and the (overall) averages of all the other (numerical) characteristics. Comment on your findings. -->
 
 ```{r}
 # set overall averages of all the other numerical characteristics
@@ -534,7 +646,14 @@ newdata$pollib <- 2
 predict(model, newdata, type = "response")
 
 ```
-From the results we can observe that a country with no civil rights for political expression (pollib = 0) is predicted to have the highest number of military coups (3.040149) compared to a country with limited civil rights for expression but right to form political parties (pollib = 2: 1.712241) and a country with full civil rights (pollib = 2: 0.9643509) when other variables are held at their average levels.
-This finding seems intuitive as one might expect more political freedom to result in fewer military coups. As a point of discussion we can mention the fact that the model was fitted using data up until 1989, so it may not be applicable to more recent years.
 
-
+From the results we can observe that a country with no civil rights for
+political expression (pollib = 0) is predicted to have the highest
+number of military coups (3.040149) compared to a country with limited
+civil rights for expression but right to form political parties (pollib
+= 2: 1.712241) and a country with full civil rights (pollib = 2:
+0.9643509) when other variables are held at their average levels. This
+finding seems intuitive as one might expect more political freedom to
+result in fewer military coups. As a point of discussion we can mention
+the fact that the model was fitted using data up until 1989, so it may
+not be applicable to more recent years.
